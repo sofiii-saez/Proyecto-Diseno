@@ -1,7 +1,15 @@
 # Proyecto Diseño - Aplicación Web de Recetas con IA
 
 **Profesor:** Nicolás Cenzano
+
 **Curso:** Diseño de Software - Universidad Adolfo Ibáñez
+
+## Integrantes del grupo
+
+- Sofía Sáez - sosaez@alumnos.uai.cl
+- Constanza Lucero - colucero@alumnos.uai.cl
+- Rebeca Fernández - refernandez@alumnos.uai.cl
+
 
 ## Instrucciones del Proyecto
 
@@ -12,12 +20,6 @@ Consiste en una **aplicación web** que sugiere recetas según los ingredientes 
 El desarrollo se divide en dos partes:
 - **Frontend:** desarrollado con React.
 - **Backend:** implementado con Express (Node.js).
-
-## Integrantes del grupo
-
-- Sofía Sáez - sosaez@alumnos.uai.cl
-- Constanza Lucero - colucero@alumnos.uai.cl
-- Rebeca Fernández - refernandez@alumnos.uai.cl
 
 ---
 
