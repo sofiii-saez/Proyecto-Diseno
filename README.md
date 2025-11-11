@@ -1,5 +1,8 @@
 # Proyecto Diseño - Aplicación Web de Recetas con IA
 
+**Profesor:** Nicolás Cenzano
+**Curso:** Diseño de Software - Universidad Adolfo Ibáñez
+
 ## Instrucciones del Proyecto
 
 Este proyecto corresponde al ramo **Diseño de Software 2025** de la Universidad Adolfo Ibáñez.
@@ -9,6 +12,12 @@ Consiste en una **aplicación web** que sugiere recetas según los ingredientes 
 El desarrollo se divide en dos partes:
 - **Frontend:** desarrollado con React.
 - **Backend:** implementado con Express (Node.js).
+
+## Integrantes del grupo
+
+- Sofía Sáez - sosaez@alumnos.uai.cl
+- Constanza Lucero - colucero@alumnos.uai.cl
+- Rebeca Fernández - refernandez@alumnos.uai.cl
 
 ---
 
@@ -31,3 +40,4 @@ Para ejecutar correctamente el proyecto, deben abrirse **dos terminales** en Vis
    ```bash
    node server.js
 
+---
