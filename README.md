@@ -12,7 +12,7 @@ El desarrollo se divide en dos partes:
 
 ---
 
-## ▶ Ejecución del Proyecto
+## Ejecución del Proyecto
 
 Para ejecutar correctamente el proyecto, deben abrirse **dos terminales** en Visual Studio Code:
 
