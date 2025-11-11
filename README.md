@@ -16,7 +16,7 @@ El desarrollo se divide en dos partes:
 
 Para ejecutar correctamente el proyecto, deben abrirse **dos terminales** en Visual Studio Code:
 
-### 1. Frontend (React)
+### - Frontend (React)
 
 1. Abrir una terminal en la carpeta `frontend`
 2. Ejecutar:
@@ -24,9 +24,9 @@ Para ejecutar correctamente el proyecto, deben abrirse **dos terminales** en Vis
    npm install
    npm start
 
-### 2. Frontend (React)
+### - Backend (API con Express)
 
-1. Abrir una terminal en la carpeta `frontend`
+1. Abrir otra terminal en la carpeta `backend`
 2. Ejecutar:
    ```bash
    node server.js
