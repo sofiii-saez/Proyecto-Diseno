@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
+import SeleccionIngredientes from "./SeleccionIngredientes";
 
 function App() {
   const [apiMessage, setApiMessage] = useState("Cargando API...");
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/ping")
+    fetch("/api/ping")
       .then((res) => res.json())
       .then((data) => setApiMessage(data.message))
       .catch(() => setApiMessage("No se pudo conectar con la API 😢"));
   }, []);
 
+  // Función que se ejecutará cuando el usuario haga clic en "Listo"
+  const handleIngredientesListos = (ingredientes) => {
+    console.log("Recibidos en App:", ingredientes);
+    // Aquí después conectarás con la API de IA
+  };
+
   return (
-    <div>
-      <h1>Proyecto recetas</h1>
-      <p>{apiMessage}</p>
+    <div className="App">
+      <SeleccionIngredientes onListo={handleIngredientesListos} />
     </div>
   );
 }
