@@ -5,21 +5,16 @@ function App() {
   const [apiMessage, setApiMessage] = useState("Cargando API...");
 
   useEffect(() => {
-    fetch("/api/ping")
+    fetch("http://localhost:4000/api/ping")
       .then((res) => res.json())
       .then((data) => setApiMessage(data.message))
       .catch(() => setApiMessage("No se pudo conectar con la API 😢"));
   }, []);
 
-  // Función que se ejecutará cuando el usuario haga clic en "Listo"
-  const handleIngredientesListos = (ingredientes) => {
-    console.log("Recibidos en App:", ingredientes);
-    // Aquí después conectarás con la API de IA
-  };
-
   return (
     <div className="App">
-      <SeleccionIngredientes onListo={handleIngredientesListos} />
+      <p style={{ textAlign: "center", padding: "10px" }}>{apiMessage}</p>
+      <SeleccionIngredientes />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import "./SeleccionIngredientes.css";
 
-function SeleccionIngredientes({ onListo }) {
+function SeleccionIngredientes() {
   // Lista base de ingredientes
   const ingredientesBase = [
     { id: 1, nombre: "Tomate", categoria: "Verduras" },
@@ -26,6 +26,11 @@ function SeleccionIngredientes({ onListo }) {
   
   // Estado para los ingredientes seleccionados (solo IDs para mejor rendimiento)
   const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState([]);
+  
+  // Estados para las recetas y carga
+  const [cargando, setCargando] = useState(false);
+  const [recetas, setRecetas] = useState([]);
+  const [error, setError] = useState(null);
 
   // Filtrar ingredientes según la búsqueda
   const ingredientesFiltrados = useMemo(() => {
@@ -69,13 +74,51 @@ function SeleccionIngredientes({ onListo }) {
     );
   }, [ingredientesSeleccionados]);
 
-  // Función para el botón "Listo"
-  const handleListo = () => {
-    console.log("Ingredientes seleccionados:", ingredientesSeleccionadosCompletos);
-    
-    // Si existe la prop onListo, llamarla con los ingredientes seleccionados
-    if (onListo) {
-      onListo(ingredientesSeleccionadosCompletos);
+  // Función para el botón "Buscar recetas"
+  const handleListo = async () => {
+    // Si no hay ingredientes seleccionados, no hacer nada
+    if (ingredientesSeleccionados.length === 0) {
+      return;
+    }
+
+    // Obtener solo los nombres de los ingredientes seleccionados
+    const nombresIngredientes = ingredientesSeleccionadosCompletos.map(ing => ing.nombre);
+
+    // Activar estado de carga
+    setCargando(true);
+    setError(null);
+    setRecetas([]);
+
+    try {
+      // Hacer petición POST al backend
+      const respuesta = await fetch("http://localhost:4000/api/recetas/ia", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ingredientesSeleccionados: nombresIngredientes
+        }),
+      });
+
+      const datos = await respuesta.json();
+
+      // Verificar si hubo error
+      if (!respuesta.ok) {
+        throw new Error(datos.error || "No fue posible obtener recetas");
+      }
+
+      // Guardar las recetas en el estado
+      // Asegurar que sea un array
+      const recetasArray = Array.isArray(datos.recetas) ? datos.recetas : [datos.recetas];
+      setRecetas(recetasArray);
+
+    } catch (err) {
+      // Manejar errores
+      setError(err.message || "No fue posible obtener recetas");
+    } finally {
+      // Desactivar estado de carga
+      setCargando(false);
     }
   };
 
@@ -170,12 +213,127 @@ function SeleccionIngredientes({ onListo }) {
       <div className="boton-listo-container">
         <button
           onClick={handleListo}
-          disabled={ingredientesSeleccionados.length === 0}
+          disabled={ingredientesSeleccionados.length === 0 || cargando}
           className="btn-listo"
         >
-          Buscar recetas
+          {cargando ? "Generando recetas..." : "Buscar recetas"}
         </button>
       </div>
+
+      {/* Mensaje de carga */}
+      {cargando && (
+        <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+          <p>Generando recetas con IA... ⏳</p>
+        </div>
+      )}
+
+      {/* Mensaje de error */}
+      {error && (
+        <div style={{ 
+          textAlign: "center", 
+          padding: "20px", 
+          color: "#d32f2f",
+          backgroundColor: "#ffebee",
+          borderRadius: "8px",
+          margin: "20px auto",
+          maxWidth: "600px"
+        }}>
+          <p>❌ {error}</p>
+        </div>
+      )}
+
+      {/* Mostrar recetas */}
+      {recetas.length > 0 && (
+        <div style={{ 
+          marginTop: "40px",
+          padding: "20px"
+        }}>
+          <h2 style={{ 
+            textAlign: "center", 
+            marginBottom: "30px",
+            color: "#333"
+          }}>
+            Recetas Generadas
+          </h2>
+          <div style={{
+            display: "grid",
+            gap: "20px",
+            maxWidth: "800px",
+            margin: "0 auto"
+          }}>
+            {recetas.map((receta, index) => (
+              <div 
+                key={index}
+                style={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "12px",
+                  padding: "24px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                }}
+              >
+                {/* Título de la receta */}
+                <h3 style={{ 
+                  marginTop: 0,
+                  marginBottom: "16px",
+                  color: "#1976d2",
+                  fontSize: "24px"
+                }}>
+                  {receta.titulo || `Receta ${index + 1}`}
+                </h3>
+
+                {/* Ingredientes */}
+                <div style={{ marginBottom: "16px" }}>
+                  <h4 style={{ 
+                    marginBottom: "8px",
+                    color: "#555",
+                    fontSize: "16px"
+                  }}>
+                    Ingredientes:
+                  </h4>
+                  <ul style={{ 
+                    margin: 0,
+                    paddingLeft: "20px",
+                    color: "#666"
+                  }}>
+                    {Array.isArray(receta.ingredientes) ? (
+                      receta.ingredientes.map((ing, i) => (
+                        <li key={i}>{ing}</li>
+                      ))
+                    ) : (
+                      <li>{receta.ingredientes || "No especificado"}</li>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Pasos */}
+                <div>
+                  <h4 style={{ 
+                    marginBottom: "8px",
+                    color: "#555",
+                    fontSize: "16px"
+                  }}>
+                    Pasos:
+                  </h4>
+                  <ol style={{ 
+                    margin: 0,
+                    paddingLeft: "20px",
+                    color: "#666"
+                  }}>
+                    {Array.isArray(receta.pasos) ? (
+                      receta.pasos.map((paso, i) => (
+                        <li key={i} style={{ marginBottom: "8px" }}>{paso}</li>
+                      ))
+                    ) : (
+                      <li>{receta.pasos || "No especificado"}</li>
+                    )}
+                  </ol>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
