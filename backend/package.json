@@ -11,9 +11,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+<<<<<<< HEAD
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+=======
+    "cors": "^2.8.5",
+>>>>>>> 412f3260c812a7be82d71ec0f683348d377ebadd
     "express": "^5.1.0"
   }
 }
