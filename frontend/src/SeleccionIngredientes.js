@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import "./SeleccionIngredientes.css";
+import { obtenerIngredientesFaltantes } from "./utils/listaSupermercado";
+import ListaSupermercado from "./ListaSupermercado";
 
 function SeleccionIngredientes() {
   // Lista base de ingredientes
@@ -31,6 +33,14 @@ function SeleccionIngredientes() {
   const [cargando, setCargando] = useState(false);
   const [recetas, setRecetas] = useState([]);
   const [error, setError] = useState(null);
+
+  // Estado para rastrear qué recetas tienen la lista de supermercado visible
+  // Usamos un objeto donde la clave es el índice de la receta y el valor es true/false
+  const [listasVisibles, setListasVisibles] = useState({});
+
+  // Estado para almacenar los ingredientes faltantes de cada receta
+  // La clave es el índice de la receta y el valor es el array de ingredientes faltantes
+  const [ingredientesFaltantesPorReceta, setIngredientesFaltantesPorReceta] = useState({});
 
   // Filtrar ingredientes según la búsqueda
   const ingredientesFiltrados = useMemo(() => {
@@ -73,6 +83,55 @@ function SeleccionIngredientes() {
       ingredientesSeleccionados.includes(ing.id)
     );
   }, [ingredientesSeleccionados]);
+
+  // Obtener solo los nombres de los ingredientes seleccionados (para comparar con las recetas)
+  const nombresIngredientesSeleccionados = useMemo(() => {
+    return ingredientesSeleccionadosCompletos.map(ing => ing.nombre);
+  }, [ingredientesSeleccionadosCompletos]);
+
+  /**
+   * Función que maneja el clic en el botón "Ver lista de supermercado"
+   * Calcula los ingredientes faltantes y muestra/oculta la lista
+   * 
+   * @param {number} indiceReceta - Índice de la receta en el array de recetas
+   */
+  const handleVerListaSupermercado = (indiceReceta) => {
+    // Obtener la receta actual
+    const receta = recetas[indiceReceta];
+    
+    // Si la lista ya está visible, ocultarla
+    if (listasVisibles[indiceReceta]) {
+      setListasVisibles(prev => {
+        const nuevo = { ...prev };
+        delete nuevo[indiceReceta];
+        return nuevo;
+      });
+      return;
+    }
+
+    // Obtener los ingredientes de la receta (puede ser array o string)
+    const ingredientesReceta = Array.isArray(receta.ingredientes) 
+      ? receta.ingredientes 
+      : (receta.ingredientes ? [receta.ingredientes] : []);
+
+    // Calcular los ingredientes faltantes usando la función de ayuda
+    const ingredientesFaltantes = obtenerIngredientesFaltantes(
+      ingredientesReceta,
+      nombresIngredientesSeleccionados
+    );
+
+    // Guardar los ingredientes faltantes para esta receta
+    setIngredientesFaltantesPorReceta(prev => ({
+      ...prev,
+      [indiceReceta]: ingredientesFaltantes
+    }));
+
+    // Mostrar la lista para esta receta
+    setListasVisibles(prev => ({
+      ...prev,
+      [indiceReceta]: true
+    }));
+  };
 
   // Función para el botón "Buscar recetas"
   const handleListo = async () => {
@@ -307,7 +366,7 @@ function SeleccionIngredientes() {
                 </div>
 
                 {/* Pasos */}
-                <div>
+                <div style={{ marginBottom: "16px" }}>
                   <h4 style={{ 
                     marginBottom: "8px",
                     color: "#555",
@@ -329,6 +388,38 @@ function SeleccionIngredientes() {
                     )}
                   </ol>
                 </div>
+
+                {/* Botón para ver lista de supermercado */}
+                <button
+                  onClick={() => handleVerListaSupermercado(index)}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#4caf50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    marginTop: "8px",
+                    transition: "background-color 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = "#45a049";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = "#4caf50";
+                  }}
+                >
+                  {listasVisibles[index] ? "Ocultar lista de supermercado" : "Ver lista de supermercado"}
+                </button>
+
+                {/* Mostrar lista de supermercado si está visible */}
+                {listasVisibles[index] && (
+                  <ListaSupermercado 
+                    ingredientesFaltantes={ingredientesFaltantesPorReceta[index] || []} 
+                  />
+                )}
               </div>
             ))}
           </div>
