@@ -90,6 +90,8 @@ IMPORTANTE: Responde SOLO con un JSON válido, sin texto adicional. El formato d
 // (usa el archivo routes/ai.routes.js)
 // ===============================
 app.use("/api/ai", require("./routes/ai.routes"));
+// RUTA PARA AUTENTICACIÓN CON GOOGLE
+app.use("/api/auth", require("./routes/auth.routes"));
 
 // ===============================
 // Servidor
