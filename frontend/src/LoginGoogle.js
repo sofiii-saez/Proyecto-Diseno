@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 
 function LoginGoogle({ onLogin }) {
-  useEffect(() => {
-    if (!window.google) {
-      console.error("Google script no cargó");
+  const initGoogle = () => {
+    if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+      console.error("Google Identity Services no está disponible");
       return;
     }
 
-    const clientId = "746080246822-6m9f1ctm1p22va55b4jgho0frsag4862.apps.googleusercontent.com"; // <-- reemplaza por el mismo que en .env
+    const clientId =
+      "TU_CLIENT_ID_COMPLETO.apps.googleusercontent.com"; // <-- reemplázalo por el real
 
     window.google.accounts.id.initialize({
       client_id: clientId,
@@ -20,7 +21,7 @@ function LoginGoogle({ onLogin }) {
           });
 
           const data = await res.json();
-          console.log("Respuesta backend auth:", data);
+          console.log("Respuesta backend /api/auth/google:", data);
 
           if (res.ok && onLogin) {
             onLogin(data); // { name, email, picture }
@@ -40,9 +41,19 @@ function LoginGoogle({ onLogin }) {
         text: "continue_with",
       }
     );
+  };
+
+  useEffect(() => {
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      initGoogle();
+    } else {
+      window.addEventListener("load", initGoogle);
+      return () => window.removeEventListener("load", initGoogle);
+    }
   }, [onLogin]);
 
   return <div id="googleSignInDiv"></div>;
 }
 
 export default LoginGoogle;
+
