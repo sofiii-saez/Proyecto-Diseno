@@ -6,17 +6,18 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "./contexts/LanguageContext";
 
 function Perfil({ user }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [favoritas, setFavoritas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [traduciendo, setTraduciendo] = useState({}); // Mapa de IDs que se están traduciendo
 
-  // Cargar favoritas al montar el componente
+  // Cargar favoritas al montar el componente o cuando cambia el idioma
   useEffect(() => {
     if (user && user.id) {
       cargarFavoritas();
     }
-  }, [user]);
+  }, [user, language]);
 
   const cargarFavoritas = async () => {
     setCargando(true);
@@ -27,7 +28,56 @@ function Perfil({ user }) {
       );
       const data = await response.json();
       if (response.ok) {
-        setFavoritas(data.favoritas || []);
+        const favoritasCargadas = data.favoritas || [];
+        
+        // Traducir automáticamente las recetas que están en un idioma diferente
+        const favoritasTraducidas = await Promise.all(
+          favoritasCargadas.map(async (receta) => {
+            // Si el idioma de la receta es diferente al idioma actual, traducir
+            if (receta.idioma && receta.idioma !== language) {
+              try {
+                setTraduciendo((prev) => ({ ...prev, [receta.id]: true }));
+                const translateResponse = await fetch(
+                  `http://localhost:4000/api/favoritas/translate/${receta.id}`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idioma_destino: language }),
+                  }
+                );
+                
+                if (translateResponse.ok) {
+                  const traduccion = await translateResponse.json();
+                  setTraduciendo((prev) => {
+                    const nuevo = { ...prev };
+                    delete nuevo[receta.id];
+                    return nuevo;
+                  });
+                  return { ...receta, ...traduccion, traducida: true };
+                } else {
+                  // Si falla la traducción, mostrar la original
+                  setTraduciendo((prev) => {
+                    const nuevo = { ...prev };
+                    delete nuevo[receta.id];
+                    return nuevo;
+                  });
+                  return receta;
+                }
+              } catch (translateErr) {
+                console.error("Error traduciendo receta:", translateErr);
+                setTraduciendo((prev) => {
+                  const nuevo = { ...prev };
+                  delete nuevo[receta.id];
+                  return nuevo;
+                });
+                return receta;
+              }
+            }
+            return receta;
+          })
+        );
+        
+        setFavoritas(favoritasTraducidas);
       } else {
         setError(data.error || t("profile.error"));
       }
@@ -94,7 +144,15 @@ function Perfil({ user }) {
             <div key={receta.id} style={styles.recetaCard}>
               {/* Header de la tarjeta con botón eliminar */}
               <div style={styles.cardHeader}>
-                <h3 style={styles.recetaTitulo}>{receta.titulo}</h3>
+                <div style={{ flex: 1 }}>
+                  <h3 style={styles.recetaTitulo}>{receta.titulo}</h3>
+                  {traduciendo[receta.id] && (
+                    <p style={styles.traduciendo}>🔄 Traduciendo...</p>
+                  )}
+                  {receta.traducida && !traduciendo[receta.id] && (
+                    <p style={styles.traducida}>✓ Traducida</p>
+                  )}
+                </div>
                 <button
                   onClick={() => handleEliminarFavorita(receta.id)}
                   style={styles.eliminarBtn}
@@ -265,6 +323,18 @@ const styles = {
     borderTop: "1px solid #e0e0e0",
     fontSize: "12px",
     color: "#999",
+    fontStyle: "italic",
+  },
+  traduciendo: {
+    fontSize: "12px",
+    color: "#1976d2",
+    margin: "5px 0 0 0",
+    fontStyle: "italic",
+  },
+  traducida: {
+    fontSize: "12px",
+    color: "#4caf50",
+    margin: "5px 0 0 0",
     fontStyle: "italic",
   },
 };

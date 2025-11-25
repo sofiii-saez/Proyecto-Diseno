@@ -48,6 +48,7 @@ function initDB() {
         titulo TEXT NOT NULL,
         ingredientes TEXT NOT NULL,
         pasos TEXT NOT NULL,
+        idioma TEXT NOT NULL DEFAULT 'es',
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
       )`,
@@ -56,6 +57,17 @@ function initDB() {
           console.error("Error creando tabla favoritas:", err.message);
         } else {
           console.log("✅ Tabla 'favoritas' lista");
+          
+          // Agregar columna idioma si no existe (para tablas ya creadas)
+          db.run(
+            "ALTER TABLE favoritas ADD COLUMN idioma TEXT DEFAULT 'es'",
+            (alterErr) => {
+              // Ignorar error si la columna ya existe
+              if (alterErr && !alterErr.message.includes("duplicate column")) {
+                console.error("Error agregando columna idioma:", alterErr.message);
+              }
+            }
+          );
         }
       }
     );

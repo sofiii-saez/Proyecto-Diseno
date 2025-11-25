@@ -240,6 +240,7 @@ function SeleccionIngredientes({ user }) {
               ? receta.ingredientes
               : [receta.ingredientes],
             pasos: Array.isArray(receta.pasos) ? receta.pasos : [receta.pasos],
+            idioma: language, // Guardar el idioma actual
           }),
         });
 
