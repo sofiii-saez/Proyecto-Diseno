@@ -1,8 +1,8 @@
-# Proyecto Diseño - Aplicación Web de Recetas con IA
+# Proyecto Diseño
 
 **Profesor:** Nicolás Cenzano
 
-**Curso:** Diseño de Software - Universidad Adolfo Ibáñez
+**Curso:** Diseño de Software 
 
 ## Integrantes del grupo
 
@@ -10,12 +10,6 @@
 - Constanza Lucero - colucero@alumnos.uai.cl
 - Rebeca Fernández - refernandez@alumnos.uai.cl
 
-
-## Instrucciones del Proyecto
-
-Este proyecto corresponde al ramo **Diseño de Software 2025** de la Universidad Adolfo Ibáñez.
-
-Consiste en una **aplicación web** que sugiere recetas según los ingredientes disponibles, genera listas de supermercado con IA y permite enlazar las compras a tiendas online.
 
 El desarrollo se divide en dos partes:
 - **Frontend:** desarrollado con React.
