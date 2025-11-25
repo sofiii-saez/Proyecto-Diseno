@@ -1,0 +1,68 @@
+{
+  "app": {
+    "loadingApi": "Loading API...",
+    "apiError": "Could not connect to API 😢",
+    "loginPrompt": "Sign in to personalize your experience:",
+    "welcome": "Hello, {{name}} 👋"
+  },
+  "ingredients": {
+    "tomato": "Tomato",
+    "onion": "Onion",
+    "garlic": "Garlic",
+    "pepper": "Bell pepper",
+    "carrot": "Carrot",
+    "lettuce": "Lettuce",
+    "milk": "Milk",
+    "cheese": "Cheese",
+    "butter": "Butter",
+    "yogurt": "Yogurt",
+    "chicken": "Chicken",
+    "beef": "Beef",
+    "pork": "Pork",
+    "fish": "Fish",
+    "eggs": "Eggs"
+  },
+  "categories": {
+    "vegetables": "Vegetables",
+    "dairy": "Dairy",
+    "meat": "Meat"
+  },
+  "selection": {
+    "title": "What ingredients do you have?",
+    "subtitle": "Select the ingredients available in your kitchen",
+    "searchPlaceholder": "Search ingredient...",
+    "generateRecipes": "Search recipes",
+    "generatingRecipes": "Generating recipes...",
+    "recipesGenerated": "Generated Recipes",
+    "ingredients": "Ingredients:",
+    "steps": "Steps:",
+    "viewShoppingList": "View shopping list",
+    "hideShoppingList": "Hide shopping list",
+    "recipeError": "Error getting recipes",
+    "noRecipesError": "Could not get recipes"
+  },
+  "supermarket": {
+    "title": "Nearby supermarkets 🛒",
+    "description": "Choose a chain to search for stores near your location:",
+    "searchJumbo": "Search Jumbo",
+    "searchUnimarc": "Search Unimarc",
+    "searchSantaIsabel": "Search Santa Isabel",
+    "searching": "Searching supermarkets...",
+    "noGeolocation": "Your browser does not support geolocation.",
+    "locationError": "You must allow location to search for supermarkets.",
+    "searchError": "Could not get nearby results :(",
+    "chooseChain": "Choose a chain to start.",
+    "viewOnMaps": "📍 View on Google Maps",
+    "missingIngredients": "Missing ingredients",
+    "allIngredientsAvailable": "✅ You already have all the necessary ingredients",
+    "searchInSupermarkets": "🔍 Search in supermarkets"
+  },
+  "backend": {
+    "noIngredients": "You must select at least one ingredient",
+    "recipeError": "Error generating recipes. Try again.",
+    "jumboError": "Error searching Jumbo",
+    "unimarcError": "Error searching Unimarc",
+    "santaIsabelError": "Error searching Santa Isabel"
+  }
+}
+
