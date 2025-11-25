@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import "./SeleccionIngredientes.css";
 import { obtenerIngredientesFaltantes } from "./utils/listaSupermercado";
 import ListaSupermercado from "./ListaSupermercado";
@@ -8,25 +8,32 @@ function SeleccionIngredientes({ user }) {
   const { t, language } = useLanguage();
 
   // -----------------------------
-  // Lista base de ingredientes con keys internas
+  // Lista base de ingredientes con keys internas (solo front)
+  // IDs con prefijo "base-" para no chocar con backend
   // -----------------------------
-  const ingredientesBase = [
-    { id: 1, key: "tomato", categoria: "vegetables" },
-    { id: 2, key: "onion", categoria: "vegetables" },
-    { id: 3, key: "garlic", categoria: "vegetables" },
-    { id: 4, key: "pepper", categoria: "vegetables" },
-    { id: 5, key: "carrot", categoria: "vegetables" },
-    { id: 6, key: "lettuce", categoria: "vegetables" },
-    { id: 7, key: "milk", categoria: "dairy" },
-    { id: 8, key: "cheese", categoria: "dairy" },
-    { id: 9, key: "butter", categoria: "dairy" },
-    { id: 10, key: "yogurt", categoria: "dairy" },
-    { id: 11, key: "chicken", categoria: "meat" },
-    { id: 12, key: "beef", categoria: "meat" },
-    { id: 13, key: "pork", categoria: "meat" },
-    { id: 14, key: "fish", categoria: "meat" },
-    { id: 15, key: "eggs", categoria: "meat" },
+  const ingredientesBaseInicial = [
+    { id: "base-1", key: "tomato", categoria: "vegetables" },
+    { id: "base-2", key: "onion", categoria: "vegetables" },
+    { id: "base-3", key: "garlic", categoria: "vegetables" },
+    { id: "base-4", key: "pepper", categoria: "vegetables" },
+    { id: "base-5", key: "carrot", categoria: "vegetables" },
+    { id: "base-6", key: "lettuce", categoria: "vegetables" },
+    { id: "base-7", key: "milk", categoria: "dairy" },
+    { id: "base-8", key: "cheese", categoria: "dairy" },
+    { id: "base-9", key: "butter", categoria: "dairy" },
+    { id: "base-10", key: "yogurt", categoria: "dairy" },
+    { id: "base-11", key: "chicken", categoria: "meat" },
+    { id: "base-12", key: "beef", categoria: "meat" },
+    { id: "base-13", key: "pork", categoria: "meat" },
+    { id: "base-14", key: "fish", categoria: "meat" },
+    { id: "base-15", key: "eggs", categoria: "meat" },
   ];
+
+  // Base en estado (para poder eliminar del front)
+  const [ingredientesBase, setIngredientesBase] = useState(ingredientesBaseInicial);
+
+  // Ingredientes que vienen del backend (los que vamos creando)
+  const [ingredientesExtras, setIngredientesExtras] = useState([]);
 
   // -----------------------------
   // Estados base del componente
@@ -51,7 +58,53 @@ function SeleccionIngredientes({ user }) {
   const [cargandoSuper, setCargandoSuper] = useState(false);
   const [errorSuper, setErrorSuper] = useState(null);
 
-  // Función genérica para buscar por cadena específica
+  // -----------------------------
+  // 🆕 ESTADOS PARA CRUD DE INGREDIENTES
+  // -----------------------------
+  const [categoriaNuevoIng, setCategoriaNuevoIng] = useState("vegetables");
+  const [cargandoNuevoIng, setCargandoNuevoIng] = useState(false);
+  const [errorNuevoIng, setErrorNuevoIng] = useState(null);
+
+  const API_INGREDIENTES = "http://localhost:4000/api/ingredientes";
+
+  // Categorías disponibles para el select (internas + texto en ES/EN)
+  const CATEGORIAS_DISPONIBLES = [
+    { value: "fruits", labelEs: "Frutas", labelEn: "Fruits" },
+    { value: "vegetables", labelEs: "Verduras", labelEn: "Vegetables" },
+    { value: "meat", labelEs: "Carnes", labelEn: "Meats" },
+    { value: "dairy", labelEs: "Lácteos", labelEn: "Dairy" },
+    { value: "seasonings", labelEs: "Aliños", labelEn: "Seasonings" },
+    { value: "other", labelEs: "Otros", labelEn: "Others" },
+  ];
+
+  // -----------------------------
+  // 🔄 Cargar ingredientes desde backend al montar
+  // (solo los creados por el usuario)
+  // -----------------------------
+  useEffect(() => {
+    const cargarIngredientesExtras = async () => {
+      try {
+        const resp = await fetch(API_INGREDIENTES);
+        const data = await resp.json();
+        const lista = Array.isArray(data.ingredientes) ? data.ingredientes : [];
+        const adaptados = lista.map((ing) => ({
+          id: `db-${ing.id}`,      // ID único en el front
+          backendId: ing.id,       // ID real del backend
+          nombre: ing.nombre,      // nombre libre
+          categoria: ing.categoria || "other",
+        }));
+        setIngredientesExtras(adaptados);
+      } catch (err) {
+        console.error("Error cargando ingredientes desde backend:", err);
+      }
+    };
+
+    cargarIngredientesExtras();
+  }, []);
+
+  // -----------------------------
+  // 🛒 Buscar supermercados por cadena
+  // -----------------------------
   const buscarPorCadena = (cadena) => {
     setCargandoSuper(true);
     setErrorSuper(null);
@@ -90,22 +143,39 @@ function SeleccionIngredientes({ user }) {
   const handleBuscarSantaIsabel = () => buscarPorCadena("santaisabel");
 
   // -----------------------------
+  // Lista completa de ingredientes (base + extras)
+  // -----------------------------
+  const todosLosIngredientes = useMemo(
+    () => [...ingredientesBase, ...ingredientesExtras],
+    [ingredientesBase, ingredientesExtras]
+  );
+
+  // -----------------------------
   // Filtrar ingredientes por búsqueda
   // -----------------------------
   const ingredientesFiltrados = useMemo(() => {
-    if (!busqueda.trim()) return ingredientesBase;
+    if (!busqueda.trim()) return todosLosIngredientes;
+
     const b = busqueda.toLowerCase();
-    return ingredientesBase.filter((i) => {
-      const nombreTraducido = t(`ingredients.${i.key}`).toLowerCase();
-      return nombreTraducido.includes(b);
+
+    return todosLosIngredientes.filter((i) => {
+      // Si tiene key, usamos la traducción (ingredientes base)
+      if (i.key) {
+        const nombreTraducido = t(`ingredients.${i.key}`).toLowerCase();
+        return nombreTraducido.includes(b);
+      }
+      // Si no tiene key, usamos el nombre libre desde backend
+      const nombreLibre = (i.nombre || "").toLowerCase();
+      return nombreLibre.includes(b);
     });
-  }, [busqueda, t, language]);
+  }, [busqueda, t, language, todosLosIngredientes]);
 
   const ingredientesPorCategoria = useMemo(() => {
     const map = {};
     ingredientesFiltrados.forEach((i) => {
-      if (!map[i.categoria]) map[i.categoria] = [];
-      map[i.categoria].push(i);
+      const cat = i.categoria || "other";
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(i);
     });
     return map;
   }, [ingredientesFiltrados]);
@@ -122,14 +192,114 @@ function SeleccionIngredientes({ user }) {
   };
 
   const ingredientesSeleccionadosCompletos = useMemo(() => {
-    return ingredientesBase.filter((i) =>
+    return todosLosIngredientes.filter((i) =>
       ingredientesSeleccionados.includes(i.id)
     );
-  }, [ingredientesSeleccionados]);
+  }, [ingredientesSeleccionados, todosLosIngredientes]);
 
   const nombresIngredientesSeleccionados = useMemo(() => {
-    return ingredientesSeleccionadosCompletos.map((i) => t(`ingredients.${i.key}`));
+    return ingredientesSeleccionadosCompletos.map((i) =>
+      i.key ? t(`ingredients.${i.key}`) : i.nombre
+    );
   }, [ingredientesSeleccionadosCompletos, t]);
+
+  // -----------------------------
+  // 🗑 Eliminar ingrediente (CRUD: Delete)
+  // -----------------------------
+  const handleEliminarIngrediente = async (ingrediente) => {
+    // Si es un ingrediente base: solo lo sacamos del estado local
+    if (!ingrediente.backendId) {
+      setIngredientesBase((prev) => prev.filter((i) => i.id !== ingrediente.id));
+      setIngredientesSeleccionados((prev) =>
+        prev.filter((id) => id !== ingrediente.id)
+      );
+      return;
+    }
+
+    // Si viene del backend, llamamos al DELETE
+    try {
+      const resp = await fetch(`${API_INGREDIENTES}/${ingrediente.backendId}`, {
+        method: "DELETE",
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        console.error("Error al eliminar ingrediente:", data);
+        alert(
+          language === "es"
+            ? data.error || "Error eliminando ingrediente"
+            : data.error || "Error deleting ingredient"
+        );
+        return;
+      }
+
+      // Lo sacamos del estado local
+      setIngredientesExtras((prev) =>
+        prev.filter((i) => i.id !== ingrediente.id)
+      );
+      setIngredientesSeleccionados((prev) =>
+        prev.filter((id) => id !== ingrediente.id)
+      );
+    } catch (err) {
+      console.error("Error de conexión al eliminar ingrediente:", err);
+      alert(
+        language === "es"
+          ? "Error de conexión al eliminar ingrediente"
+          : "Connection error while deleting ingredient"
+      );
+    }
+  };
+
+  // -----------------------------
+  // ➕ Añadir ingrediente cuando no hay resultados (CRUD: Create)
+  // -----------------------------
+  const handleAgregarIngrediente = async () => {
+    const nombreNuevo = busqueda.trim();
+    if (!nombreNuevo) return;
+
+    setCargandoNuevoIng(true);
+    setErrorNuevoIng(null);
+
+    try {
+      const resp = await fetch(API_INGREDIENTES, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: nombreNuevo,
+          categoria: categoriaNuevoIng,
+          idioma: language,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Error al crear ingrediente");
+      }
+
+      const ing = data.ingrediente;
+
+      const nuevoIngredienteFront = {
+        id: `db-${ing.id}`,
+        backendId: ing.id,
+        nombre: ing.nombre,
+        categoria: ing.categoria || categoriaNuevoIng,
+      };
+
+      setIngredientesExtras((prev) => [...prev, nuevoIngredienteFront]);
+      // Lo marcamos automáticamente como seleccionado
+      setIngredientesSeleccionados((prev) => [...prev, nuevoIngredienteFront.id]);
+    } catch (err) {
+      console.error("Error creando ingrediente:", err);
+      setErrorNuevoIng(
+        err.message ||
+          (language === "es"
+            ? "Error al crear ingrediente"
+            : "Error creating ingredient")
+      );
+    } finally {
+      setCargandoNuevoIng(false);
+    }
+  };
 
   // -----------------------------
   // Mostrar ingredientes faltantes
@@ -266,7 +436,6 @@ function SeleccionIngredientes({ user }) {
   const handleListo = async () => {
     if (ingredientesSeleccionados.length === 0) return;
 
-    // Usar los nombres traducidos que ya están calculados
     const nombresIngredientes = nombresIngredientesSeleccionados;
 
     setCargando(true);
@@ -293,7 +462,6 @@ function SeleccionIngredientes({ user }) {
 
       setRecetas(recetasArray);
       
-      // Verificar favoritas para las nuevas recetas
       if (user && user.id) {
         verificarFavoritas(recetasArray);
       }
@@ -307,6 +475,11 @@ function SeleccionIngredientes({ user }) {
   // ======================================================
   // RENDER
   // ======================================================
+  const noResultsText =
+    language === "es"
+      ? `No encontramos "${busqueda}". ¿Quieres añadirlo como ingrediente?`
+      : `We couldn't find "${busqueda}". Do you want to add it as an ingredient?`;
+
   return (
     <div className="seleccion-ingredientes">
       <div className="seleccion-ingredientes-header">
@@ -327,36 +500,95 @@ function SeleccionIngredientes({ user }) {
         />
       </div>
 
-      {/* Ingredientes por categoría */}
+      {/* Ingredientes por categoría o mensaje de no resultados */}
       <div className="ingredientes-lista">
-        {Object.keys(ingredientesPorCategoria).map((categoria) => (
-          <div key={categoria} className="categoria-grupo">
-            <h3 className="categoria-titulo">{t(`categories.${categoria}`)}</h3>
-            <div className="ingredientes-grid">
-              {ingredientesPorCategoria[categoria].map((ingrediente) => {
-                const sel = ingredientesSeleccionados.includes(ingrediente.id);
-                return (
-                  <label
-                    key={ingrediente.id}
-                    className={`ingrediente-card ${
-                      sel ? "seleccionado" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={sel}
-                      onChange={() => handleToggleIngrediente(ingrediente)}
-                      className="ingrediente-checkbox"
-                    />
-                    <span className="ingrediente-nombre">
-                      {t(`ingredients.${ingrediente.key}`)}
-                    </span>
-                  </label>
-                );
-              })}
+        {Object.keys(ingredientesPorCategoria).length > 0 ? (
+          Object.keys(ingredientesPorCategoria).map((categoria) => (
+            <div key={categoria} className="categoria-grupo">
+              <h3 className="categoria-titulo">
+                {t(`categories.${categoria}`)}
+              </h3>
+              <div className="ingredientes-grid">
+                {ingredientesPorCategoria[categoria].map((ingrediente) => {
+                  const sel = ingredientesSeleccionados.includes(ingrediente.id);
+                  const nombreVisible = ingrediente.key
+                    ? t(`ingredients.${ingrediente.key}`)
+                    : ingrediente.nombre;
+
+                  return (
+                    <div
+                      key={ingrediente.id}
+                      className={`ingrediente-card ${
+                        sel ? "seleccionado" : ""
+                      }`}
+                    >
+                      <div className="ingrediente-main">
+                        <input
+                          type="checkbox"
+                          checked={sel}
+                          onChange={() => handleToggleIngrediente(ingrediente)}
+                          className="ingrediente-checkbox"
+                        />
+                        <span className="ingrediente-nombre">
+                          {nombreVisible}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-eliminar-ingrediente"
+                        onClick={() => handleEliminarIngrediente(ingrediente)}
+                        title={
+                          language === "es"
+                            ? "Eliminar ingrediente"
+                            : "Delete ingredient"
+                        }
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        ) : busqueda.trim() ? (
+          <div className="sin-resultados">
+            <p>{noResultsText}</p>
+            <div className="agregar-ingrediente-form">
+              <label>
+                {language === "es" ? "Categoría:" : "Category:"}
+              </label>
+              <select
+                value={categoriaNuevoIng}
+                onChange={(e) => setCategoriaNuevoIng(e.target.value)}
+              >
+                {CATEGORIAS_DISPONIBLES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {language === "es" ? cat.labelEs : cat.labelEn}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn-listo"
+                style={{ maxWidth: "260px" }}
+                disabled={cargandoNuevoIng || !busqueda.trim()}
+                onClick={handleAgregarIngrediente}
+              >
+                {cargandoNuevoIng
+                  ? language === "es"
+                    ? "Guardando..."
+                    : "Saving..."
+                  : language === "es"
+                  ? "Añadir ingrediente"
+                  : "Add ingredient"}
+              </button>
+              {errorNuevoIng && (
+                <p style={{ color: "red", marginTop: "0.5rem" }}>{errorNuevoIng}</p>
+              )}
             </div>
           </div>
-        ))}
+        ) : null}
       </div>
 
       {/* Botón recetas */}
@@ -378,199 +610,203 @@ function SeleccionIngredientes({ user }) {
       )}
 
       {/* Mostrar recetas */}
-{recetas.length > 0 && (
-  <div
-    style={{
-      marginTop: "40px",
-      padding: "20px",
-    }}
-  >
-    <h2
-      style={{
-        textAlign: "center",
-        marginBottom: "30px",
-        color: "#333",
-      }}
-    >
-      {t("selection.recipesGenerated")}
-    </h2>
-    <div
-      style={{
-        display: "grid",
-        gap: "20px",
-        maxWidth: "800px",
-        margin: "0 auto",
-      }}
-    >
-      {recetas.map((receta, index) => {
-        const esFavorita = favoritasMap[receta.titulo];
-        return (
+      {recetas.length > 0 && (
         <div
-          key={index}
           style={{
-            backgroundColor: "#fff",
-            border: "2px solid #e0e0e0",
-            borderRadius: "16px",
-            padding: "24px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            position: "relative",
-            transition: "transform 0.2s, box-shadow 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-4px)";
-            e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+            marginTop: "40px",
+            padding: "20px",
           }}
         >
-          {/* Botón de estrella (favorita) */}
-          {user && (
-            <button
-              onClick={() => handleToggleFavorita(receta)}
-              style={{
-                position: "absolute",
-                top: "20px",
-                right: "20px",
-                background: "none",
-                border: "none",
-                fontSize: "28px",
-                cursor: "pointer",
-                padding: "5px",
-                transition: "transform 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = "scale(1.2)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = "scale(1)";
-              }}
-              title={esFavorita ? "Quitar de favoritas" : "Agregar a favoritas"}
-            >
-              {esFavorita ? "⭐" : "☆"}
-            </button>
-          )}
-
-          {/* Título de la receta */}
-          <h3
+          <h2
             style={{
-              marginTop: 0,
-              marginBottom: "16px",
-              color: "#1976d2",
-              fontSize: "26px",
-              fontWeight: "bold",
-              paddingRight: user ? "40px" : "0",
+              textAlign: "center",
+              marginBottom: "30px",
+              color: "#333",
             }}
           >
-            {receta.titulo || `Receta ${index + 1}`}
-          </h3>
-
-          {/* Ingredientes */}
-          <div style={{ marginBottom: "20px" }}>
-            <h4
-              style={{
-                marginBottom: "10px",
-                color: "#333",
-                fontSize: "18px",
-                fontWeight: "600",
-              }}
-            >
-              {t("selection.ingredients")}
-            </h4>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "24px",
-                color: "#666",
-                lineHeight: "1.8",
-              }}
-            >
-              {Array.isArray(receta.ingredientes) ? (
-                receta.ingredientes.map((ing, i) => (
-                  <li key={i}>{ing}</li>
-                ))
-              ) : (
-                <li>{receta.ingredientes || "No especificado"}</li>
-              )}
-            </ul>
-          </div>
-
-          {/* Pasos */}
-          <div style={{ marginBottom: "20px" }}>
-            <h4
-              style={{
-                marginBottom: "10px",
-                color: "#333",
-                fontSize: "18px",
-                fontWeight: "600",
-              }}
-            >
-              {t("selection.steps")}
-            </h4>
-            <ol
-              style={{
-                margin: 0,
-                paddingLeft: "24px",
-                color: "#666",
-                lineHeight: "1.8",
-              }}
-            >
-              {Array.isArray(receta.pasos) ? (
-                receta.pasos.map((paso, i) => (
-                  <li key={i} style={{ marginBottom: "10px" }}>
-                    {paso}
-                  </li>
-                ))
-              ) : (
-                <li>{receta.pasos || "No especificado"}</li>
-              )}
-            </ol>
-          </div>
-
-          {/* Botón para ver lista de supermercado */}
-          <button
-            onClick={() => handleVerListaSupermercado(index)}
+            {t("selection.recipesGenerated")}
+          </h2>
+          <div
             style={{
-              padding: "12px 24px",
-              backgroundColor: "#4caf50",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "15px",
-              fontWeight: "600",
-              marginTop: "8px",
-              transition: "background-color 0.2s ease",
-              width: "100%",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#45a049";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#4caf50";
+              display: "grid",
+              gap: "20px",
+              maxWidth: "800px",
+              margin: "0 auto",
             }}
           >
-            {listasVisibles[index]
-              ? t("selection.hideShoppingList")
-              : t("selection.viewShoppingList")}
-          </button>
+            {recetas.map((receta, index) => {
+              const esFavorita = favoritasMap[receta.titulo];
+              return (
+                <div
+                  key={index}
+                  style={{
+                    backgroundColor: "#fff",
+                    border: "2px solid #e0e0e0",
+                    borderRadius: "16px",
+                    padding: "24px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    position: "relative",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 16px rgba(0,0,0,0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 12px rgba(0,0,0,0.1)";
+                  }}
+                >
+                  {/* Botón de estrella (favorita) */}
+                  {user && (
+                    <button
+                      onClick={() => handleToggleFavorita(receta)}
+                      style={{
+                        position: "absolute",
+                        top: "20px",
+                        right: "20px",
+                        background: "none",
+                        border: "none",
+                        fontSize: "28px",
+                        cursor: "pointer",
+                        padding: "5px",
+                        transition: "transform 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = "scale(1.2)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = "scale(1)";
+                      }}
+                      title={
+                        esFavorita
+                          ? "Quitar de favoritas"
+                          : "Agregar a favoritas"
+                      }
+                    >
+                      {esFavorita ? "⭐" : "☆"}
+                    </button>
+                  )}
 
-          {/* Mostrar lista de supermercado si está visible */}
-          {listasVisibles[index] && (
-            <ListaSupermercado
-              ingredientesFaltantes={
-                ingredientesFaltantesPorReceta[index] || []
-              }
-            />
-          )}
+                  {/* Título de la receta */}
+                  <h3
+                    style={{
+                      marginTop: 0,
+                      marginBottom: "16px",
+                      color: "#1976d2",
+                      fontSize: "26px",
+                      fontWeight: "bold",
+                      paddingRight: user ? "40px" : "0",
+                    }}
+                  >
+                    {receta.titulo || `Receta ${index + 1}`}
+                  </h3>
+
+                  {/* Ingredientes */}
+                  <div style={{ marginBottom: "20px" }}>
+                    <h4
+                      style={{
+                        marginBottom: "10px",
+                        color: "#333",
+                        fontSize: "18px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("selection.ingredients")}
+                    </h4>
+                    <ul
+                      style={{
+                        margin: 0,
+                        paddingLeft: "24px",
+                        color: "#666",
+                        lineHeight: "1.8",
+                      }}
+                    >
+                      {Array.isArray(receta.ingredientes) ? (
+                        receta.ingredientes.map((ing, i) => (
+                          <li key={i}>{ing}</li>
+                        ))
+                      ) : (
+                        <li>{receta.ingredientes || "No especificado"}</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Pasos */}
+                  <div style={{ marginBottom: "20px" }}>
+                    <h4
+                      style={{
+                        marginBottom: "10px",
+                        color: "#333",
+                        fontSize: "18px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("selection.steps")}
+                    </h4>
+                    <ol
+                      style={{
+                        margin: 0,
+                        paddingLeft: "24px",
+                        color: "#666",
+                        lineHeight: "1.8",
+                      }}
+                    >
+                      {Array.isArray(receta.pasos) ? (
+                        receta.pasos.map((paso, i) => (
+                          <li key={i} style={{ marginBottom: "10px" }}>
+                            {paso}
+                          </li>
+                        ))
+                      ) : (
+                        <li>{receta.pasos || "No especificado"}</li>
+                      )}
+                    </ol>
+                  </div>
+
+                  {/* Botón para ver lista de supermercado */}
+                  <button
+                    onClick={() => handleVerListaSupermercado(index)}
+                    style={{
+                      padding: "12px 24px",
+                      backgroundColor: "#4caf50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      marginTop: "8px",
+                      transition: "background-color 0.2s ease",
+                      width: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = "#45a049";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "#4caf50";
+                    }}
+                  >
+                    {listasVisibles[index]
+                      ? t("selection.hideShoppingList")
+                      : t("selection.viewShoppingList")}
+                  </button>
+
+                  {listasVisibles[index] && (
+                    <ListaSupermercado
+                      ingredientesFaltantes={
+                        ingredientesFaltantesPorReceta[index] || []
+                      }
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-        );
-      })}
-    </div>
-  </div>
-)}
-
+      )}
 
       {/* ======================================================
            🛒 SUPERMERCADOS CERCANOS POR CADENA
@@ -640,11 +876,11 @@ function SeleccionIngredientes({ user }) {
                 }}
               >
                 <strong>{s.name || s.display_name}</strong>
-{ s.distancia && (
-  <div style={{ fontSize: "14px", color: "#555" }}>
-    {s.distancia.toFixed(2)} km
-  </div>
-)}
+                {s.distancia && (
+                  <div style={{ fontSize: "14px", color: "#555" }}>
+                    {s.distancia.toFixed(2)} km
+                  </div>
+                )}
 
                 <br />
                 {s.address?.road},{" "}

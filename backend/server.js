@@ -40,6 +40,7 @@ function haversineDist(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
+
 // ===============================
 // Ruta de prueba
 // ===============================
@@ -47,7 +48,7 @@ app.get("/api/ping", (req, res) => {
   const idioma = req.query.idioma || "es";
   const messages = {
     es: "API funcionando correctamente",
-    en: "API working correctly"
+    en: "API working correctly",
   };
   res.json({ message: messages[idioma] || messages.es });
 });
@@ -62,7 +63,7 @@ app.post("/api/recetas/ia", async (req, res) => {
     if (!ingredientesSeleccionados || ingredientesSeleccionados.length === 0) {
       const errorMessages = {
         es: "Debes seleccionar al menos un ingrediente",
-        en: "You must select at least one ingredient"
+        en: "You must select at least one ingredient",
       };
       return res.status(400).json({
         error: errorMessages[idioma] || errorMessages.es,
@@ -70,7 +71,7 @@ app.post("/api/recetas/ia", async (req, res) => {
     }
 
     const listaIngredientes = ingredientesSeleccionados.join(", ");
-    
+
     // Prompts según idioma
     const prompts = {
       es: `Genera exactamente 3 recetas fáciles usando PRINCIPALMENTE estos ingredientes específicos: ${listaIngredientes}. 
@@ -100,13 +101,13 @@ IMPORTANT RULES:
   "pasos": ["Step 1", "Step 2", ...]
 }
 
-ALL texts (title, ingredients and steps) must be completely in ENGLISH.`
+ALL texts (title, ingredients and steps) must be completely in ENGLISH.`,
     };
 
     const prompt = prompts[idioma] || prompts.es;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // modelo nuevo
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const respuesta = await model.generateContent(prompt);
 
     let textoRespuesta = respuesta.response.text();
@@ -125,7 +126,7 @@ ALL texts (title, ingredients and steps) must be completely in ENGLISH.`
       console.error("Error parseando JSON de Gemini:", error);
       const defaultTitles = {
         es: "Receta generada",
-        en: "Generated recipe"
+        en: "Generated recipe",
       };
       recetasIA = [
         {
@@ -141,7 +142,7 @@ ALL texts (title, ingredients and steps) must be completely in ENGLISH.`
     console.error("ERROR COMPLETO EN GEMINI:", error);
     const errorMessages = {
       es: "Error al generar las recetas. Intenta de nuevo.",
-      en: "Error generating recipes. Try again."
+      en: "Error generating recipes. Try again.",
     };
     res.status(500).json({
       error: errorMessages[req.body.idioma || "es"] || errorMessages.es,
@@ -154,13 +155,105 @@ ALL texts (title, ingredients and steps) must be completely in ENGLISH.`
 // (usa el archivo routes/ai.routes.js)
 // ===============================
 app.use("/api/ai", require("./routes/ai.routes"));
+
 // RUTA PARA AUTENTICACIÓN CON GOOGLE
 app.use("/api/auth", require("./routes/auth.routes"));
+
 // RUTA PARA AUTENTICACIÓN CON EMAIL/PASSWORD (registro y login)
 app.use("/api", require("./authRoutes"));
+
 // RUTA PARA FAVORITAS
 app.use("/api", require("./favoritasRoutes"));
 
+// ===============================
+// 🧅 CRUD de ingredientes (en memoria)
+// ===============================
+
+// Lista en memoria (por ahora)
+let ingredientes = [];
+let nextIngredienteId = 1;
+
+// GET todos los ingredientes
+app.get("/api/ingredientes", (req, res) => {
+  res.json({ ingredientes });
+});
+
+// POST crear ingrediente
+app.post("/api/ingredientes", (req, res) => {
+  const { nombre, categoria, idioma = "es" } = req.body;
+
+  const errorMessages = {
+    faltanDatos: {
+      es: "Falta nombre o categoría del ingrediente",
+      en: "Missing ingredient name or category",
+    },
+  };
+
+  if (!nombre || !categoria) {
+    return res.status(400).json({
+      error: errorMessages.faltanDatos[idioma] || errorMessages.faltanDatos.es,
+    });
+  }
+
+  const nuevoIngrediente = {
+    id: nextIngredienteId++,
+    nombre,
+    categoria,
+  };
+
+  ingredientes.push(nuevoIngrediente);
+
+  res.status(201).json({ ingrediente: nuevoIngrediente });
+});
+
+// PUT actualizar ingrediente
+app.put("/api/ingredientes/:id", (req, res) => {
+  const { id } = req.params;
+  const { nombre, categoria, idioma = "es" } = req.body;
+
+  const errorMessages = {
+    noEncontrado: {
+      es: "Ingrediente no encontrado",
+      en: "Ingredient not found",
+    },
+  };
+
+  const indice = ingredientes.findIndex((ing) => ing.id === Number(id));
+  if (indice === -1) {
+    return res.status(404).json({
+      error: errorMessages.noEncontrado[idioma] || errorMessages.noEncontrado.es,
+    });
+  }
+
+  if (nombre !== undefined) ingredientes[indice].nombre = nombre;
+  if (categoria !== undefined) ingredientes[indice].categoria = categoria;
+
+  res.json({ ingrediente: ingredientes[indice] });
+});
+
+// DELETE eliminar ingrediente
+app.delete("/api/ingredientes/:id", (req, res) => {
+  const { id } = req.params;
+  const { idioma = "es" } = req.query;
+
+  const errorMessages = {
+    noEncontrado: {
+      es: "Ingrediente no encontrado",
+      en: "Ingredient not found",
+    },
+  };
+
+  const indice = ingredientes.findIndex((ing) => ing.id === Number(id));
+  if (indice === -1) {
+    return res.status(404).json({
+      error: errorMessages.noEncontrado[idioma] || errorMessages.noEncontrado.es,
+    });
+  }
+
+  const eliminado = ingredientes.splice(indice, 1)[0];
+
+  res.json({ eliminado });
+});
 
 // ===============================
 // 🛒 Buscar Jumbo
@@ -187,30 +280,30 @@ app.get("/api/supermercados/jumbo", async (req, res) => {
     url.searchParams.set("q", "Jumbo supermercado");
 
     const respuesta = await fetch(url, {
-      headers: { "User-Agent": "ProyectoDiseno/1.0 (sofia.saez.segura@gmail.com)" },
+      headers: {
+        "User-Agent": "ProyectoDiseno/1.0 (sofia.saez.segura@gmail.com)",
+      },
     });
 
     const datos = await respuesta.json();
-    // ORDENAR POR DISTANCIA
-const ordenados = datos
-  .map((s) => ({
-    ...s,
-    distancia: haversineDist(
-      latNum,
-      lonNum,
-      parseFloat(s.lat),
-      parseFloat(s.lon)
-    ),
-  }))
-  .sort((a, b) => a.distancia - b.distancia);
+    const ordenados = datos
+      .map((s) => ({
+        ...s,
+        distancia: haversineDist(
+          latNum,
+          lonNum,
+          parseFloat(s.lat),
+          parseFloat(s.lon)
+        ),
+      }))
+      .sort((a, b) => a.distancia - b.distancia);
 
-res.json({ resultados: ordenados });
-
+    res.json({ resultados: ordenados });
   } catch (e) {
     const idioma = req.query.idioma || "es";
     const errorMessages = {
       es: "Error buscando Jumbo",
-      en: "Error searching Jumbo"
+      en: "Error searching Jumbo",
     };
     res.status(500).json({ error: errorMessages[idioma] || errorMessages.es });
   }
@@ -241,30 +334,30 @@ app.get("/api/supermercados/unimarc", async (req, res) => {
     url.searchParams.set("q", "Unimarc supermercado");
 
     const respuesta = await fetch(url, {
-      headers: { "User-Agent": "ProyectoDiseno/1.0 (sofia.saez.segura@gmail.com)" },
+      headers: {
+        "User-Agent": "ProyectoDiseno/1.0 (sofia.saez.segura@gmail.com)",
+      },
     });
 
     const datos = await respuesta.json();
-    // ORDENAR POR DISTANCIA
-const ordenados = datos
-  .map((s) => ({
-    ...s,
-    distancia: haversineDist(
-      latNum,
-      lonNum,
-      parseFloat(s.lat),
-      parseFloat(s.lon)
-    ),
-  }))
-  .sort((a, b) => a.distancia - b.distancia);
+    const ordenados = datos
+      .map((s) => ({
+        ...s,
+        distancia: haversineDist(
+          latNum,
+          lonNum,
+          parseFloat(s.lat),
+          parseFloat(s.lon)
+        ),
+      }))
+      .sort((a, b) => a.distancia - b.distancia);
 
-res.json({ resultados: ordenados });
-
+    res.json({ resultados: ordenados });
   } catch (e) {
     const idioma = req.query.idioma || "es";
     const errorMessages = {
       es: "Error buscando Unimarc",
-      en: "Error searching Unimarc"
+      en: "Error searching Unimarc",
     };
     res.status(500).json({ error: errorMessages[idioma] || errorMessages.es });
   }
@@ -295,35 +388,34 @@ app.get("/api/supermercados/santaisabel", async (req, res) => {
     url.searchParams.set("q", "Santa Isabel supermercado");
 
     const respuesta = await fetch(url, {
-      headers: { "User-Agent": "ProyectoDiseno/1.0 (sofia.saez.segura@gmail.com)" },
+      headers: {
+        "User-Agent": "ProyectoDiseno/1.0 (sofia.saez.segura@gmail.com)",
+      },
     });
 
     const datos = await respuesta.json();
-    // ORDENAR POR DISTANCIA
-const ordenados = datos
-  .map((s) => ({
-    ...s,
-    distancia: haversineDist(
-      latNum,
-      lonNum,
-      parseFloat(s.lat),
-      parseFloat(s.lon)
-    ),
-  }))
-  .sort((a, b) => a.distancia - b.distancia);
+    const ordenados = datos
+      .map((s) => ({
+        ...s,
+        distancia: haversineDist(
+          latNum,
+          lonNum,
+          parseFloat(s.lat),
+          parseFloat(s.lon)
+        ),
+      }))
+      .sort((a, b) => a.distancia - b.distancia);
 
-res.json({ resultados: ordenados });
-
+    res.json({ resultados: ordenados });
   } catch (e) {
     const idioma = req.query.idioma || "es";
     const errorMessages = {
       es: "Error buscando Santa Isabel",
-      en: "Error searching Santa Isabel"
+      en: "Error searching Santa Isabel",
     };
     res.status(500).json({ error: errorMessages[idioma] || errorMessages.es });
   }
 });
-
 
 // ===============================
 // Inicializar Base de Datos
