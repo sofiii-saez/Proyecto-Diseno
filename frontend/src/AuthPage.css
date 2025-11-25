@@ -1,0 +1,143 @@
+/* AuthPage Component Styles */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.auth-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: #1976d2;
+  margin: 0 0 10px 0;
+}
+
+.auth-subtitle {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+}
+
+.auth-content {
+  width: 100%;
+  max-width: 500px;
+}
+
+.auth-section {
+  margin-bottom: 30px;
+}
+
+.auth-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.auth-google-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.auth-separator {
+  display: flex;
+  align-items: center;
+  margin: 30px 0;
+  gap: 15px;
+}
+
+.auth-separator-line {
+  flex: 1;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.auth-separator-text {
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Responsive - Mobile (hasta 768px) */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 15px 10px;
+    min-height: calc(100vh - 40px);
+  }
+
+  .auth-header {
+    margin-bottom: 30px;
+  }
+
+  .auth-title {
+    font-size: 32px;
+  }
+
+  .auth-subtitle {
+    font-size: 16px;
+  }
+
+  .auth-content {
+    max-width: 100%;
+  }
+
+  .auth-section {
+    margin-bottom: 25px;
+  }
+
+  .auth-section-title {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .auth-google-container {
+    padding: 15px;
+  }
+
+  .auth-separator {
+    margin: 25px 0;
+    gap: 10px;
+  }
+
+  .auth-separator-text {
+    font-size: 12px;
+  }
+}
+
+/* Responsive - Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .auth-container {
+    padding: 18px 15px;
+  }
+
+  .auth-title {
+    font-size: 40px;
+  }
+
+  .auth-subtitle {
+    font-size: 17px;
+  }
+
+  .auth-content {
+    max-width: 450px;
+  }
+
+  .auth-section-title {
+    font-size: 19px;
+  }
+}
+

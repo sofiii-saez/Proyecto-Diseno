@@ -4,6 +4,7 @@
 // ===============================
 import { useState, useEffect } from "react";
 import { useLanguage } from "./contexts/LanguageContext";
+import "./Perfil.css";
 
 function Perfil({ user }) {
   const { t, language } = useLanguage();
@@ -114,48 +115,48 @@ function Perfil({ user }) {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>⭐ {t("profile.title")}</h1>
-        <p style={styles.subtitle}>
+    <div className="perfil-container">
+      <div className="perfil-header">
+        <h1 className="perfil-title">⭐ {t("profile.title")}</h1>
+        <p className="perfil-subtitle">
           {t("profile.subtitle", { name: user.name, count: favoritas.length })}
         </p>
       </div>
 
       {cargando ? (
-        <div style={styles.loading}>
+        <div className="perfil-loading">
           <p>{t("profile.loading")}</p>
         </div>
       ) : error ? (
-        <div style={styles.error}>
+        <div className="perfil-error">
           <p>❌ {error}</p>
         </div>
       ) : favoritas.length === 0 ? (
-        <div style={styles.empty}>
-          <p style={styles.emptyText}>
+        <div className="perfil-empty">
+          <p className="perfil-empty-text">
             {t("profile.empty")}
             <br />
             {t("profile.emptyHint")}
           </p>
         </div>
       ) : (
-        <div style={styles.recetasGrid}>
+        <div className="perfil-recetas-grid">
           {favoritas.map((receta) => (
-            <div key={receta.id} style={styles.recetaCard}>
+            <div key={receta.id} className="perfil-receta-card">
               {/* Header de la tarjeta con botón eliminar */}
-              <div style={styles.cardHeader}>
+              <div className="perfil-card-header">
                 <div style={{ flex: 1 }}>
-                  <h3 style={styles.recetaTitulo}>{receta.titulo}</h3>
+                  <h3 className="perfil-receta-titulo">{receta.titulo}</h3>
                   {traduciendo[receta.id] && (
-                    <p style={styles.traduciendo}>🔄 Traduciendo...</p>
+                    <p className="perfil-traduciendo">🔄 Traduciendo...</p>
                   )}
                   {receta.traducida && !traduciendo[receta.id] && (
-                    <p style={styles.traducida}>✓ Traducida</p>
+                    <p className="perfil-traducida">✓ Traducida</p>
                   )}
                 </div>
                 <button
                   onClick={() => handleEliminarFavorita(receta.id)}
-                  style={styles.eliminarBtn}
+                  className="perfil-eliminar-btn"
                   title={t("profile.deleteTitle")}
                 >
                   ❌
@@ -163,11 +164,11 @@ function Perfil({ user }) {
               </div>
 
               {/* Ingredientes */}
-              <div style={styles.section}>
-                <h4 style={styles.sectionTitle}>
+              <div className="perfil-section">
+                <h4 className="perfil-section-title">
                   {t("selection.ingredients")}
                 </h4>
-                <ul style={styles.list}>
+                <ul className="perfil-list">
                   {Array.isArray(receta.ingredientes) ? (
                     receta.ingredientes.map((ing, i) => (
                       <li key={i}>{ing}</li>
@@ -179,12 +180,12 @@ function Perfil({ user }) {
               </div>
 
               {/* Pasos */}
-              <div style={styles.section}>
-                <h4 style={styles.sectionTitle}>{t("selection.steps")}</h4>
-                <ol style={styles.list}>
+              <div className="perfil-section">
+                <h4 className="perfil-section-title">{t("selection.steps")}</h4>
+                <ol className="perfil-list">
                   {Array.isArray(receta.pasos) ? (
                     receta.pasos.map((paso, i) => (
-                      <li key={i} style={styles.pasoItem}>
+                      <li key={i} className="perfil-paso-item">
                         {paso}
                       </li>
                     ))
@@ -196,7 +197,7 @@ function Perfil({ user }) {
 
               {/* Fecha */}
               {receta.fecha_creacion && (
-                <div style={styles.fecha}>
+                <div className="perfil-fecha">
                   {t("profile.savedOn")} {new Date(receta.fecha_creacion).toLocaleDateString()}
                 </div>
               )}
@@ -207,137 +208,6 @@ function Perfil({ user }) {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "20px",
-    minHeight: "100vh",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "40px",
-    padding: "30px",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    borderRadius: "16px",
-    color: "white",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-  },
-  title: {
-    fontSize: "36px",
-    fontWeight: "bold",
-    margin: "0 0 10px 0",
-  },
-  subtitle: {
-    fontSize: "18px",
-    margin: "0",
-    opacity: 0.9,
-  },
-  loading: {
-    textAlign: "center",
-    padding: "40px",
-    fontSize: "18px",
-    color: "#666",
-  },
-  error: {
-    textAlign: "center",
-    padding: "40px",
-    fontSize: "18px",
-    color: "#dc3545",
-    backgroundColor: "#ffebee",
-    borderRadius: "8px",
-    margin: "20px 0",
-  },
-  empty: {
-    textAlign: "center",
-    padding: "60px 20px",
-    backgroundColor: "#f5f5f5",
-    borderRadius: "12px",
-    margin: "20px 0",
-  },
-  emptyText: {
-    fontSize: "18px",
-    color: "#666",
-    lineHeight: "1.6",
-  },
-  recetasGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-    gap: "24px",
-    marginTop: "20px",
-  },
-  recetaCard: {
-    backgroundColor: "#fff",
-    borderRadius: "16px",
-    padding: "24px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-    transition: "transform 0.2s, box-shadow 0.2s",
-    border: "1px solid #e0e0e0",
-  },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: "20px",
-    paddingBottom: "16px",
-    borderBottom: "2px solid #f0f0f0",
-  },
-  recetaTitulo: {
-    margin: "0",
-    fontSize: "24px",
-    color: "#1976d2",
-    fontWeight: "bold",
-    flex: 1,
-  },
-  eliminarBtn: {
-    background: "none",
-    border: "none",
-    fontSize: "20px",
-    cursor: "pointer",
-    padding: "5px 10px",
-    borderRadius: "4px",
-    transition: "background-color 0.2s",
-  },
-  section: {
-    marginBottom: "20px",
-  },
-  sectionTitle: {
-    fontSize: "18px",
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: "12px",
-  },
-  list: {
-    margin: "0",
-    paddingLeft: "24px",
-    color: "#666",
-    lineHeight: "1.6",
-  },
-  pasoItem: {
-    marginBottom: "8px",
-  },
-  fecha: {
-    marginTop: "16px",
-    paddingTop: "16px",
-    borderTop: "1px solid #e0e0e0",
-    fontSize: "12px",
-    color: "#999",
-    fontStyle: "italic",
-  },
-  traduciendo: {
-    fontSize: "12px",
-    color: "#1976d2",
-    margin: "5px 0 0 0",
-    fontStyle: "italic",
-  },
-  traducida: {
-    fontSize: "12px",
-    color: "#4caf50",
-    margin: "5px 0 0 0",
-    fontStyle: "italic",
-  },
-};
 
 export default Perfil;
 

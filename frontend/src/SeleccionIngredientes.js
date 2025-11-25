@@ -611,75 +611,20 @@ function SeleccionIngredientes({ user }) {
 
       {/* Mostrar recetas */}
       {recetas.length > 0 && (
-        <div
-          style={{
-            marginTop: "40px",
-            padding: "20px",
-          }}
-        >
-          <h2
-            style={{
-              textAlign: "center",
-              marginBottom: "30px",
-              color: "#333",
-            }}
-          >
+        <div className="recetas-container">
+          <h2 className="recetas-titulo">
             {t("selection.recipesGenerated")}
           </h2>
-          <div
-            style={{
-              display: "grid",
-              gap: "20px",
-              maxWidth: "800px",
-              margin: "0 auto",
-            }}
-          >
+          <div className="recetas-grid">
             {recetas.map((receta, index) => {
               const esFavorita = favoritasMap[receta.titulo];
               return (
-                <div
-                  key={index}
-                  style={{
-                    backgroundColor: "#fff",
-                    border: "2px solid #e0e0e0",
-                    borderRadius: "16px",
-                    padding: "24px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    position: "relative",
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 6px 16px rgba(0,0,0,0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(0,0,0,0.1)";
-                  }}
-                >
+                <div key={index} className="receta-card">
                   {/* Botón de estrella (favorita) */}
                   {user && (
                     <button
                       onClick={() => handleToggleFavorita(receta)}
-                      style={{
-                        position: "absolute",
-                        top: "20px",
-                        right: "20px",
-                        background: "none",
-                        border: "none",
-                        fontSize: "28px",
-                        cursor: "pointer",
-                        padding: "5px",
-                        transition: "transform 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.transform = "scale(1.2)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = "scale(1)";
-                      }}
+                      className="receta-favorita-btn"
                       title={
                         esFavorita
                           ? "Quitar de favoritas"
@@ -692,38 +637,18 @@ function SeleccionIngredientes({ user }) {
 
                   {/* Título de la receta */}
                   <h3
-                    style={{
-                      marginTop: 0,
-                      marginBottom: "16px",
-                      color: "#1976d2",
-                      fontSize: "26px",
-                      fontWeight: "bold",
-                      paddingRight: user ? "40px" : "0",
-                    }}
+                    className="receta-titulo"
+                    style={{ paddingRight: user ? "40px" : "0" }}
                   >
                     {receta.titulo || `Receta ${index + 1}`}
                   </h3>
 
                   {/* Ingredientes */}
-                  <div style={{ marginBottom: "20px" }}>
-                    <h4
-                      style={{
-                        marginBottom: "10px",
-                        color: "#333",
-                        fontSize: "18px",
-                        fontWeight: "600",
-                      }}
-                    >
+                  <div className="receta-seccion">
+                    <h4 className="receta-seccion-titulo">
                       {t("selection.ingredients")}
                     </h4>
-                    <ul
-                      style={{
-                        margin: 0,
-                        paddingLeft: "24px",
-                        color: "#666",
-                        lineHeight: "1.8",
-                      }}
-                    >
+                    <ul className="receta-lista">
                       {Array.isArray(receta.ingredientes) ? (
                         receta.ingredientes.map((ing, i) => (
                           <li key={i}>{ing}</li>
@@ -735,28 +660,14 @@ function SeleccionIngredientes({ user }) {
                   </div>
 
                   {/* Pasos */}
-                  <div style={{ marginBottom: "20px" }}>
-                    <h4
-                      style={{
-                        marginBottom: "10px",
-                        color: "#333",
-                        fontSize: "18px",
-                        fontWeight: "600",
-                      }}
-                    >
+                  <div className="receta-seccion">
+                    <h4 className="receta-seccion-titulo">
                       {t("selection.steps")}
                     </h4>
-                    <ol
-                      style={{
-                        margin: 0,
-                        paddingLeft: "24px",
-                        color: "#666",
-                        lineHeight: "1.8",
-                      }}
-                    >
+                    <ol className="receta-lista">
                       {Array.isArray(receta.pasos) ? (
                         receta.pasos.map((paso, i) => (
-                          <li key={i} style={{ marginBottom: "10px" }}>
+                          <li key={i} className="receta-paso-item">
                             {paso}
                           </li>
                         ))
@@ -769,25 +680,7 @@ function SeleccionIngredientes({ user }) {
                   {/* Botón para ver lista de supermercado */}
                   <button
                     onClick={() => handleVerListaSupermercado(index)}
-                    style={{
-                      padding: "12px 24px",
-                      backgroundColor: "#4caf50",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontSize: "15px",
-                      fontWeight: "600",
-                      marginTop: "8px",
-                      transition: "background-color 0.2s ease",
-                      width: "100%",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#45a049";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = "#4caf50";
-                    }}
+                    className="receta-supermercado-btn"
                   >
                     {listasVisibles[index]
                       ? t("selection.hideShoppingList")
@@ -811,28 +704,14 @@ function SeleccionIngredientes({ user }) {
       {/* ======================================================
            🛒 SUPERMERCADOS CERCANOS POR CADENA
          ====================================================== */}
-      <div
-        style={{
-          marginTop: "40px",
-          padding: "20px",
-          background: "#f5f5f5",
-          borderRadius: "12px",
-        }}
-      >
+      <div className="supermercados-container">
         <h2 style={{ marginBottom: "15px" }}>{t("supermarket.title")}</h2>
 
         <p style={{ marginBottom: "8px" }}>
           {t("supermarket.description")}
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "10px",
-            marginBottom: "10px",
-          }}
-        >
+        <div className="supermercados-botones">
           <button onClick={handleBuscarJumbo} className="btn-listo">
             {t("supermarket.searchJumbo")}
           </button>

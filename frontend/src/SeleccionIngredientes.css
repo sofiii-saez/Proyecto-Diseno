@@ -305,10 +305,15 @@
   box-shadow: none;
 }
 
-/* Responsive - Mobile */
+/* Responsive - Mobile (hasta 768px) */
 @media (max-width: 768px) {
   .seleccion-ingredientes {
     padding: 1.5rem 1rem;
+    max-width: 100%;
+  }
+
+  .seleccion-ingredientes-header {
+    margin-bottom: 1.5rem;
   }
 
   .titulo-principal {
@@ -319,6 +324,15 @@
     font-size: 0.875rem;
   }
 
+  .busqueda-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .busqueda-input {
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    font-size: 0.9375rem;
+  }
+
   .ingredientes-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 0.5rem;
@@ -326,10 +340,21 @@
 
   .ingrediente-card {
     padding: 0.75rem 0.875rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .ingrediente-main {
+    width: 100%;
   }
 
   .ingrediente-nombre {
     font-size: 0.875rem;
+  }
+
+  .categoria-titulo {
+    font-size: 0.8125rem;
   }
 
   .resumen-seleccionados {
@@ -344,12 +369,247 @@
 
   .btn-listo {
     max-width: 100%;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .boton-listo-container {
+    margin-top: 1.5rem;
+  }
+
+  .sin-resultados {
+    padding: 2rem 1rem;
+  }
+
+  .agregar-ingrediente-form {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
-/* Responsive - Tablet */
+/* Recetas generadas */
+.recetas-container {
+  margin-top: 40px;
+  padding: 20px;
+}
+
+.recetas-titulo {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.recetas-grid {
+  display: grid;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.receta-card {
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.receta-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.receta-favorita-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 5px;
+  transition: transform 0.2s;
+}
+
+.receta-favorita-btn:hover {
+  transform: scale(1.2);
+}
+
+.receta-titulo {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #1976d2;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.receta-seccion {
+  margin-bottom: 20px;
+}
+
+.receta-seccion-titulo {
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.receta-lista {
+  margin: 0;
+  padding-left: 24px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.receta-paso-item {
+  margin-bottom: 10px;
+}
+
+.receta-supermercado-btn {
+  padding: 12px 24px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 8px;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.receta-supermercado-btn:hover {
+  background-color: #45a049;
+}
+
+/* Supermercados section */
+.supermercados-container {
+  margin-top: 40px;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 12px;
+}
+
+.supermercados-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Responsive - Tablet (769px - 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
+  .seleccion-ingredientes {
+    padding: 1.75rem 1.25rem;
+    max-width: 100%;
+  }
+
+  .titulo-principal {
+    font-size: 1.75rem;
+  }
+
   .ingredientes-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.625rem;
+  }
+
+  .ingrediente-card {
+    padding: 0.8125rem 0.9375rem;
+  }
+
+  .btn-listo {
+    max-width: 280px;
+  }
+
+  .recetas-container {
+    margin-top: 35px;
+    padding: 18px;
+  }
+
+  .receta-card {
+    padding: 20px;
+  }
+
+  .receta-titulo {
+    font-size: 24px;
+  }
+
+  .receta-seccion-titulo {
+    font-size: 17px;
+  }
+}
+
+/* Responsive - Mobile para recetas */
+@media (max-width: 768px) {
+  .recetas-container {
+    margin-top: 30px;
+    padding: 15px 10px;
+  }
+
+  .recetas-titulo {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .recetas-grid {
+    gap: 16px;
+    max-width: 100%;
+  }
+
+  .receta-card {
+    padding: 18px;
+  }
+
+  .receta-favorita-btn {
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+  }
+
+  .receta-titulo {
+    font-size: 20px;
+    margin-bottom: 12px;
+    padding-right: 35px;
+  }
+
+  .receta-seccion {
+    margin-bottom: 16px;
+  }
+
+  .receta-seccion-titulo {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .receta-lista {
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .receta-paso-item {
+    margin-bottom: 8px;
+  }
+
+  .receta-supermercado-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .supermercados-container {
+    margin-top: 30px;
+    padding: 15px;
+  }
+
+  .supermercados-botones {
+    flex-direction: column;
+  }
+
+  .supermercados-botones .btn-listo {
+    width: 100%;
+    max-width: 100%;
   }
 }
