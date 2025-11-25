@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SeleccionIngredientes from "./SeleccionIngredientes";
-import LoginGoogle from "./LoginGoogle";
+import AuthPage from "./AuthPage";
 import { useLanguage } from "./contexts/LanguageContext";
 
 function App() {
@@ -60,19 +60,35 @@ function App() {
       <p style={{ textAlign: "center", padding: "10px" }}>{apiMessage}</p>
 
       {!user ? (
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <p>{t("app.loginPrompt")}</p>
-          <LoginGoogle onLogin={setUser} />
-        </div>
+        <AuthPage onLogin={setUser} />
       ) : (
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <p>
-            {t("app.welcome", { name: user.name })}
-          </p>
-        </div>
+        <>
+          <div style={{ textAlign: "center", marginBottom: "20px", padding: "20px" }}>
+            <p style={{ marginBottom: "15px", fontSize: "18px" }}>
+              {t("app.welcome", { name: user.name })}
+            </p>
+            <button
+              onClick={() => setUser(null)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                backgroundColor: "#dc3545",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontWeight: "500",
+                transition: "background-color 0.3s",
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#c82333")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#dc3545")}
+            >
+              Cerrar Sesión
+            </button>
+          </div>
+          <SeleccionIngredientes />
+        </>
       )}
-
-      <SeleccionIngredientes />
     </div>
   );
 }

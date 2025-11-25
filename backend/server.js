@@ -10,6 +10,7 @@ console.log("¿Clave Gemini existe?:", !!process.env.GEMINI_API_KEY);
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { initDB } = require("./database");
 
 const app = express();
 
@@ -155,6 +156,8 @@ ALL texts (title, ingredients and steps) must be completely in ENGLISH.`
 app.use("/api/ai", require("./routes/ai.routes"));
 // RUTA PARA AUTENTICACIÓN CON GOOGLE
 app.use("/api/auth", require("./routes/auth.routes"));
+// RUTA PARA AUTENTICACIÓN CON EMAIL/PASSWORD (registro y login)
+app.use("/api", require("./authRoutes"));
 
 
 // ===============================
@@ -319,6 +322,11 @@ res.json({ resultados: ordenados });
   }
 });
 
+
+// ===============================
+// Inicializar Base de Datos
+// ===============================
+initDB();
 
 // ===============================
 // Servidor
