@@ -270,50 +270,152 @@ function SeleccionIngredientes() {
       )}
 
       {/* Mostrar recetas */}
-      {recetas.length > 0 && (
-        <div style={{ marginTop: "30px" }}>
-          <h2 style={{ textAlign: "center" }}>Recetas Generadas</h2>
+{recetas.length > 0 && (
+  <div
+    style={{
+      marginTop: "40px",
+      padding: "20px",
+    }}
+  >
+    <h2
+      style={{
+        textAlign: "center",
+        marginBottom: "30px",
+        color: "#333",
+      }}
+    >
+      Recetas Generadas
+    </h2>
+    <div
+      style={{
+        display: "grid",
+        gap: "20px",
+        maxWidth: "800px",
+        margin: "0 auto",
+      }}
+    >
+      {recetas.map((receta, index) => (
+        <div
+          key={index}
+          style={{
+            backgroundColor: "#fff",
+            border: "1px solid #e0e0e0",
+            borderRadius: "12px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          {/* Título de la receta */}
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "16px",
+              color: "#1976d2",
+              fontSize: "24px",
+            }}
+          >
+            {receta.titulo || `Receta ${index + 1}`}
+          </h3>
 
-          <div style={{ display: "grid", gap: "20px" }}>
-            {recetas.map((receta, index) => (
-              <div key={index} className="tarjeta-receta">
-                <h3>{receta.titulo}</h3>
-
-                <h4>Ingredientes:</h4>
-                <ul>
-                  {receta.ingredientes?.map((i, idx) => (
-                    <li key={idx}>{i}</li>
-                  ))}
-                </ul>
-
-                <h4>Pasos:</h4>
-                <ol>
-                  {receta.pasos?.map((p, idx) => (
-                    <li key={idx}>{p}</li>
-                  ))}
-                </ol>
-
-                <button
-                  onClick={() => handleVerListaSupermercado(index)}
-                  className="btn-ver-lista"
-                >
-                  {listasVisibles[index]
-                    ? "Ocultar lista de supermercado"
-                    : "Ver lista de supermercado"}
-                </button>
-
-                {listasVisibles[index] && (
-                  <ListaSupermercado
-                    ingredientesFaltantes={
-                      ingredientesFaltantesPorReceta[index] || []
-                    }
-                  />
-                )}
-              </div>
-            ))}
+          {/* Ingredientes */}
+          <div style={{ marginBottom: "16px" }}>
+            <h4
+              style={{
+                marginBottom: "8px",
+                color: "#555",
+                fontSize: "16px",
+              }}
+            >
+              Ingredientes:
+            </h4>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "20px",
+                color: "#666",
+              }}
+            >
+              {Array.isArray(receta.ingredientes) ? (
+                receta.ingredientes.map((ing, i) => (
+                  <li key={i}>{ing}</li>
+                ))
+              ) : (
+                <li>{receta.ingredientes || "No especificado"}</li>
+              )}
+            </ul>
           </div>
+
+          {/* Pasos */}
+          <div style={{ marginBottom: "16px" }}>
+            <h4
+              style={{
+                marginBottom: "8px",
+                color: "#555",
+                fontSize: "16px",
+              }}
+            >
+              Pasos:
+            </h4>
+            <ol
+              style={{
+                margin: 0,
+                paddingLeft: "20px",
+                color: "#666",
+              }}
+            >
+              {Array.isArray(receta.pasos) ? (
+                receta.pasos.map((paso, i) => (
+                  <li key={i} style={{ marginBottom: "8px" }}>
+                    {paso}
+                  </li>
+                ))
+              ) : (
+                <li>{receta.pasos || "No especificado"}</li>
+              )}
+            </ol>
+          </div>
+
+          {/* Botón para ver lista de supermercado */}
+          <button
+            onClick={() => handleVerListaSupermercado(index)}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#4caf50",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "500",
+              marginTop: "8px",
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = "#45a049";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = "#4caf50";
+            }}
+          >
+            {listasVisibles[index]
+              ? "Ocultar lista de supermercado"
+              : "Ver lista de supermercado"}
+          </button>
+
+          {/* Mostrar lista de supermercado si está visible */}
+          {listasVisibles[index] && (
+            <ListaSupermercado
+              ingredientesFaltantes={
+                ingredientesFaltantesPorReceta[index] || []
+              }
+            />
+          )}
         </div>
-      )}
+      ))}
+    </div>
+  </div>
+)}
+
 
       {/* ======================================================
            🛒 SUPERMERCADOS CERCANOS POR CADENA
