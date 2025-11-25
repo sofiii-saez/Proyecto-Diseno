@@ -158,6 +158,8 @@ app.use("/api/ai", require("./routes/ai.routes"));
 app.use("/api/auth", require("./routes/auth.routes"));
 // RUTA PARA AUTENTICACIÓN CON EMAIL/PASSWORD (registro y login)
 app.use("/api", require("./authRoutes"));
+// RUTA PARA FAVORITAS
+app.use("/api", require("./favoritasRoutes"));
 
 
 // ===============================

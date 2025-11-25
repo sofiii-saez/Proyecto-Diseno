@@ -3,7 +3,11 @@
     "loadingApi": "Loading API...",
     "apiError": "Could not connect to API 😢",
     "loginPrompt": "Sign in to personalize your experience:",
-    "welcome": "Hello, {{name}} 👋"
+    "welcome": "Hello, {{name}} 👋",
+    "home": "Home",
+    "myProfile": "My Profile",
+    "logout": "Logout",
+    "logoutTitle": "Log out"
   },
   "ingredients": {
     "tomato": "Tomato",
@@ -63,6 +67,17 @@
     "jumboError": "Error searching Jumbo",
     "unimarcError": "Error searching Unimarc",
     "santaIsabelError": "Error searching Santa Isabel"
+  },
+  "profile": {
+    "title": "My Favorite Recipes",
+    "subtitle": "{{name}} - {{count}} saved recipes",
+    "loading": "Loading favorites...",
+    "error": "Error loading favorites",
+    "connectionError": "Connection error",
+    "empty": "You don't have favorite recipes yet.",
+    "emptyHint": "Mark recipes with ⭐ to save them here.",
+    "deleteTitle": "Remove from favorites",
+    "savedOn": "Saved on:"
   }
 }
 

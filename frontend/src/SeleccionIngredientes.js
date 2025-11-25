@@ -4,7 +4,7 @@ import { obtenerIngredientesFaltantes } from "./utils/listaSupermercado";
 import ListaSupermercado from "./ListaSupermercado";
 import { useLanguage } from "./contexts/LanguageContext";
 
-function SeleccionIngredientes() {
+function SeleccionIngredientes({ user }) {
   const { t, language } = useLanguage();
 
   // -----------------------------
@@ -40,6 +40,9 @@ function SeleccionIngredientes() {
   const [listasVisibles, setListasVisibles] = useState({});
   const [ingredientesFaltantesPorReceta, setIngredientesFaltantesPorReceta] =
     useState({});
+  
+  // Estado para favoritas (mapa de título de receta -> favorita_id)
+  const [favoritasMap, setFavoritasMap] = useState({});
 
   // -----------------------------
   // 🆕 ESTADOS PARA SUPERMERCADOS
@@ -166,6 +169,97 @@ function SeleccionIngredientes() {
   };
 
   // -----------------------------
+  // Verificar si recetas están en favoritas
+  // -----------------------------
+  const verificarFavoritas = async (recetas) => {
+    if (!user || !user.id) return;
+    
+    const nuevoMap = {};
+    for (const receta of recetas) {
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/favoritas/check/${user.id}?titulo=${encodeURIComponent(receta.titulo)}`
+        );
+        const data = await response.json();
+        if (data.esFavorita) {
+          nuevoMap[receta.titulo] = data.favorita_id;
+        }
+      } catch (err) {
+        console.error("Error verificando favorita:", err);
+      }
+    }
+    setFavoritasMap(nuevoMap);
+  };
+
+  // -----------------------------
+  // Agregar/eliminar de favoritas
+  // -----------------------------
+  const handleToggleFavorita = async (receta) => {
+    if (!user || !user.id) {
+      alert("Debes iniciar sesión para guardar favoritas");
+      return;
+    }
+
+    const esFavorita = favoritasMap[receta.titulo];
+
+    if (esFavorita) {
+      // Eliminar de favoritas
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/favoritas/${esFavorita}`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario_id: user.id }),
+          }
+        );
+
+        if (response.ok) {
+          setFavoritasMap((prev) => {
+            const nuevo = { ...prev };
+            delete nuevo[receta.titulo];
+            return nuevo;
+          });
+        } else {
+          alert("Error eliminando de favoritas");
+        }
+      } catch (err) {
+        console.error("Error eliminando favorita:", err);
+        alert("Error de conexión");
+      }
+    } else {
+      // Agregar a favoritas
+      try {
+        const response = await fetch("http://localhost:4000/api/favoritas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usuario_id: user.id,
+            titulo: receta.titulo,
+            ingredientes: Array.isArray(receta.ingredientes)
+              ? receta.ingredientes
+              : [receta.ingredientes],
+            pasos: Array.isArray(receta.pasos) ? receta.pasos : [receta.pasos],
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setFavoritasMap((prev) => ({
+            ...prev,
+            [receta.titulo]: data.favorita.id,
+          }));
+        } else {
+          alert(data.error || "Error guardando en favoritas");
+        }
+      } catch (err) {
+        console.error("Error agregando favorita:", err);
+        alert("Error de conexión");
+      }
+    }
+  };
+
+  // -----------------------------
   // Buscar recetas con IA
   // -----------------------------
   const handleListo = async () => {
@@ -197,6 +291,11 @@ function SeleccionIngredientes() {
         : [datos.recetas];
 
       setRecetas(recetasArray);
+      
+      // Verificar favoritas para las nuevas recetas
+      if (user && user.id) {
+        verificarFavoritas(recetasArray);
+      }
     } catch (err) {
       setError(err.message || t("selection.recipeError"));
     } finally {
@@ -302,36 +401,78 @@ function SeleccionIngredientes() {
         margin: "0 auto",
       }}
     >
-      {recetas.map((receta, index) => (
+      {recetas.map((receta, index) => {
+        const esFavorita = favoritasMap[receta.titulo];
+        return (
         <div
           key={index}
           style={{
             backgroundColor: "#fff",
-            border: "1px solid #e0e0e0",
-            borderRadius: "12px",
+            border: "2px solid #e0e0e0",
+            borderRadius: "16px",
             padding: "24px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            position: "relative",
+            transition: "transform 0.2s, box-shadow 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-4px)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
           }}
         >
+          {/* Botón de estrella (favorita) */}
+          {user && (
+            <button
+              onClick={() => handleToggleFavorita(receta)}
+              style={{
+                position: "absolute",
+                top: "20px",
+                right: "20px",
+                background: "none",
+                border: "none",
+                fontSize: "28px",
+                cursor: "pointer",
+                padding: "5px",
+                transition: "transform 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "scale(1.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "scale(1)";
+              }}
+              title={esFavorita ? "Quitar de favoritas" : "Agregar a favoritas"}
+            >
+              {esFavorita ? "⭐" : "☆"}
+            </button>
+          )}
+
           {/* Título de la receta */}
           <h3
             style={{
               marginTop: 0,
               marginBottom: "16px",
               color: "#1976d2",
-              fontSize: "24px",
+              fontSize: "26px",
+              fontWeight: "bold",
+              paddingRight: user ? "40px" : "0",
             }}
           >
             {receta.titulo || `Receta ${index + 1}`}
           </h3>
 
           {/* Ingredientes */}
-          <div style={{ marginBottom: "16px" }}>
+          <div style={{ marginBottom: "20px" }}>
             <h4
               style={{
-                marginBottom: "8px",
-                color: "#555",
-                fontSize: "16px",
+                marginBottom: "10px",
+                color: "#333",
+                fontSize: "18px",
+                fontWeight: "600",
               }}
             >
               {t("selection.ingredients")}
@@ -339,8 +480,9 @@ function SeleccionIngredientes() {
             <ul
               style={{
                 margin: 0,
-                paddingLeft: "20px",
+                paddingLeft: "24px",
                 color: "#666",
+                lineHeight: "1.8",
               }}
             >
               {Array.isArray(receta.ingredientes) ? (
@@ -354,12 +496,13 @@ function SeleccionIngredientes() {
           </div>
 
           {/* Pasos */}
-          <div style={{ marginBottom: "16px" }}>
+          <div style={{ marginBottom: "20px" }}>
             <h4
               style={{
-                marginBottom: "8px",
-                color: "#555",
-                fontSize: "16px",
+                marginBottom: "10px",
+                color: "#333",
+                fontSize: "18px",
+                fontWeight: "600",
               }}
             >
               {t("selection.steps")}
@@ -367,13 +510,14 @@ function SeleccionIngredientes() {
             <ol
               style={{
                 margin: 0,
-                paddingLeft: "20px",
+                paddingLeft: "24px",
                 color: "#666",
+                lineHeight: "1.8",
               }}
             >
               {Array.isArray(receta.pasos) ? (
                 receta.pasos.map((paso, i) => (
-                  <li key={i} style={{ marginBottom: "8px" }}>
+                  <li key={i} style={{ marginBottom: "10px" }}>
                     {paso}
                   </li>
                 ))
@@ -387,16 +531,17 @@ function SeleccionIngredientes() {
           <button
             onClick={() => handleVerListaSupermercado(index)}
             style={{
-              padding: "10px 20px",
+              padding: "12px 24px",
               backgroundColor: "#4caf50",
               color: "white",
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "500",
+              fontSize: "15px",
+              fontWeight: "600",
               marginTop: "8px",
               transition: "background-color 0.2s ease",
+              width: "100%",
             }}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = "#45a049";
@@ -419,7 +564,8 @@ function SeleccionIngredientes() {
             />
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   </div>
 )}

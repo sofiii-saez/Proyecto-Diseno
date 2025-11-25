@@ -3,7 +3,11 @@
     "loadingApi": "Cargando API...",
     "apiError": "No se pudo conectar con la API 😢",
     "loginPrompt": "Inicia sesión para personalizar tu experiencia:",
-    "welcome": "Hola, {{name}} 👋"
+    "welcome": "Hola, {{name}} 👋",
+    "home": "Inicio",
+    "myProfile": "Mi Perfil",
+    "logout": "Salir",
+    "logoutTitle": "Cerrar sesión"
   },
   "ingredients": {
     "tomato": "Tomate",
@@ -63,6 +67,17 @@
     "jumboError": "Error buscando Jumbo",
     "unimarcError": "Error buscando Unimarc",
     "santaIsabelError": "Error buscando Santa Isabel"
+  },
+  "profile": {
+    "title": "Mis Recetas Favoritas",
+    "subtitle": "{{name}} - {{count}} recetas guardadas",
+    "loading": "Cargando favoritas...",
+    "error": "Error cargando favoritas",
+    "connectionError": "Error de conexión",
+    "empty": "No tienes recetas favoritas aún.",
+    "emptyHint": "Marca recetas con ⭐ para guardarlas aquí.",
+    "deleteTitle": "Eliminar de favoritas",
+    "savedOn": "Guardada el:"
   }
 }
 

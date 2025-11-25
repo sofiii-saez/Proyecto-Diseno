@@ -39,6 +39,26 @@ function initDB() {
         }
       }
     );
+
+    // Crear tabla favoritas si no existe
+    db.run(
+      `CREATE TABLE IF NOT EXISTS favoritas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id INTEGER NOT NULL,
+        titulo TEXT NOT NULL,
+        ingredientes TEXT NOT NULL,
+        pasos TEXT NOT NULL,
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+      )`,
+      (err) => {
+        if (err) {
+          console.error("Error creando tabla favoritas:", err.message);
+        } else {
+          console.log("✅ Tabla 'favoritas' lista");
+        }
+      }
+    );
   });
 
   return db;
