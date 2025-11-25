@@ -43,7 +43,12 @@ function haversineDist(lat1, lon1, lat2, lon2) {
 // Ruta de prueba
 // ===============================
 app.get("/api/ping", (req, res) => {
-  res.json({ message: "API funcionando correctamente" });
+  const idioma = req.query.idioma || "es";
+  const messages = {
+    es: "API funcionando correctamente",
+    en: "API working correctly"
+  };
+  res.json({ message: messages[idioma] || messages.es });
 });
 
 // ===============================
@@ -51,23 +56,53 @@ app.get("/api/ping", (req, res) => {
 // ===============================
 app.post("/api/recetas/ia", async (req, res) => {
   try {
-    const { ingredientesSeleccionados } = req.body;
+    const { ingredientesSeleccionados, idioma = "es" } = req.body;
 
     if (!ingredientesSeleccionados || ingredientesSeleccionados.length === 0) {
+      const errorMessages = {
+        es: "Debes seleccionar al menos un ingrediente",
+        en: "You must select at least one ingredient"
+      };
       return res.status(400).json({
-        error: "Debes seleccionar al menos un ingrediente",
+        error: errorMessages[idioma] || errorMessages.es,
       });
     }
 
     const listaIngredientes = ingredientesSeleccionados.join(", ");
-    const prompt = `Genera 3 recetas fáciles usando principalmente estos ingredientes: ${listaIngredientes}. 
+    
+    // Prompts según idioma
+    const prompts = {
+      es: `Genera exactamente 3 recetas fáciles usando PRINCIPALMENTE estos ingredientes específicos: ${listaIngredientes}. 
 
-IMPORTANTE: Responde SOLO con un JSON válido, sin texto adicional. El formato debe ser un array de objetos, cada uno con esta estructura:
+REGLAS IMPORTANTES:
+- Debes usar principalmente los ingredientes proporcionados: ${listaIngredientes}
+- Puedes agregar ingredientes básicos comunes (sal, aceite, agua) pero el foco debe estar en los ingredientes proporcionados
+- Responde SOLO con un JSON válido, sin texto adicional
+- El formato debe ser un array de objetos, cada uno con esta estructura:
 {
   "titulo": "Nombre de la receta",
   "ingredientes": ["ingrediente1", "ingrediente2", ...],
   "pasos": ["Paso 1", "Paso 2", ...]
-}`;
+}
+
+TODOS los textos (título, ingredientes y pasos) deben estar completamente en ESPAÑOL.`,
+      en: `Generate exactly 3 easy recipes using MAINLY these specific ingredients: ${listaIngredientes}. 
+
+IMPORTANT RULES:
+- You must use mainly the provided ingredients: ${listaIngredientes}
+- You can add basic common ingredients (salt, oil, water) but the focus must be on the provided ingredients
+- Respond ONLY with valid JSON, no additional text
+- The format must be an array of objects, each with this structure:
+{
+  "titulo": "Recipe name",
+  "ingredientes": ["ingredient1", "ingredient2", ...],
+  "pasos": ["Step 1", "Step 2", ...]
+}
+
+ALL texts (title, ingredients and steps) must be completely in ENGLISH.`
+    };
+
+    const prompt = prompts[idioma] || prompts.es;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // modelo nuevo
@@ -87,9 +122,13 @@ IMPORTANTE: Responde SOLO con un JSON válido, sin texto adicional. El formato d
       if (!Array.isArray(recetasIA)) recetasIA = [recetasIA];
     } catch (error) {
       console.error("Error parseando JSON de Gemini:", error);
+      const defaultTitles = {
+        es: "Receta generada",
+        en: "Generated recipe"
+      };
       recetasIA = [
         {
-          titulo: "Receta generada",
+          titulo: defaultTitles[idioma] || defaultTitles.es,
           ingredientes: ingredientesSeleccionados,
           pasos: [textoRespuesta],
         },
@@ -99,8 +138,12 @@ IMPORTANTE: Responde SOLO con un JSON válido, sin texto adicional. El formato d
     res.json({ recetas: recetasIA });
   } catch (error) {
     console.error("ERROR COMPLETO EN GEMINI:", error);
+    const errorMessages = {
+      es: "Error al generar las recetas. Intenta de nuevo.",
+      en: "Error generating recipes. Try again."
+    };
     res.status(500).json({
-      error: "Error al generar las recetas. Intenta de nuevo.",
+      error: errorMessages[req.body.idioma || "es"] || errorMessages.es,
     });
   }
 });
@@ -159,7 +202,12 @@ const ordenados = datos
 res.json({ resultados: ordenados });
 
   } catch (e) {
-    res.status(500).json({ error: "Error buscando Jumbo" });
+    const idioma = req.query.idioma || "es";
+    const errorMessages = {
+      es: "Error buscando Jumbo",
+      en: "Error searching Jumbo"
+    };
+    res.status(500).json({ error: errorMessages[idioma] || errorMessages.es });
   }
 });
 
@@ -208,7 +256,12 @@ const ordenados = datos
 res.json({ resultados: ordenados });
 
   } catch (e) {
-    res.status(500).json({ error: "Error buscando Unimarc" });
+    const idioma = req.query.idioma || "es";
+    const errorMessages = {
+      es: "Error buscando Unimarc",
+      en: "Error searching Unimarc"
+    };
+    res.status(500).json({ error: errorMessages[idioma] || errorMessages.es });
   }
 });
 
@@ -257,7 +310,12 @@ const ordenados = datos
 res.json({ resultados: ordenados });
 
   } catch (e) {
-    res.status(500).json({ error: "Error buscando Santa Isabel" });
+    const idioma = req.query.idioma || "es";
+    const errorMessages = {
+      es: "Error buscando Santa Isabel",
+      en: "Error searching Santa Isabel"
+    };
+    res.status(500).json({ error: errorMessages[idioma] || errorMessages.es });
   }
 });
 

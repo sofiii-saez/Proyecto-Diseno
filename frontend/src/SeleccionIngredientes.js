@@ -2,27 +2,30 @@ import { useState, useMemo } from "react";
 import "./SeleccionIngredientes.css";
 import { obtenerIngredientesFaltantes } from "./utils/listaSupermercado";
 import ListaSupermercado from "./ListaSupermercado";
+import { useLanguage } from "./contexts/LanguageContext";
 
 function SeleccionIngredientes() {
+  const { t, language } = useLanguage();
+
   // -----------------------------
-  // Lista base de ingredientes
+  // Lista base de ingredientes con keys internas
   // -----------------------------
   const ingredientesBase = [
-    { id: 1, nombre: "Tomate", categoria: "Verduras" },
-    { id: 2, nombre: "Cebolla", categoria: "Verduras" },
-    { id: 3, nombre: "Ajo", categoria: "Verduras" },
-    { id: 4, nombre: "Pimiento", categoria: "Verduras" },
-    { id: 5, nombre: "Zanahoria", categoria: "Verduras" },
-    { id: 6, nombre: "Lechuga", categoria: "Verduras" },
-    { id: 7, nombre: "Leche", categoria: "Lácteos" },
-    { id: 8, nombre: "Queso", categoria: "Lácteos" },
-    { id: 9, nombre: "Mantequilla", categoria: "Lácteos" },
-    { id: 10, nombre: "Yogur", categoria: "Lácteos" },
-    { id: 11, nombre: "Pollo", categoria: "Carnes" },
-    { id: 12, nombre: "Carne de res", categoria: "Carnes" },
-    { id: 13, nombre: "Cerdo", categoria: "Carnes" },
-    { id: 14, nombre: "Pescado", categoria: "Carnes" },
-    { id: 15, nombre: "Huevos", categoria: "Carnes" },
+    { id: 1, key: "tomato", categoria: "vegetables" },
+    { id: 2, key: "onion", categoria: "vegetables" },
+    { id: 3, key: "garlic", categoria: "vegetables" },
+    { id: 4, key: "pepper", categoria: "vegetables" },
+    { id: 5, key: "carrot", categoria: "vegetables" },
+    { id: 6, key: "lettuce", categoria: "vegetables" },
+    { id: 7, key: "milk", categoria: "dairy" },
+    { id: 8, key: "cheese", categoria: "dairy" },
+    { id: 9, key: "butter", categoria: "dairy" },
+    { id: 10, key: "yogurt", categoria: "dairy" },
+    { id: 11, key: "chicken", categoria: "meat" },
+    { id: 12, key: "beef", categoria: "meat" },
+    { id: 13, key: "pork", categoria: "meat" },
+    { id: 14, key: "fish", categoria: "meat" },
+    { id: 15, key: "eggs", categoria: "meat" },
   ];
 
   // -----------------------------
@@ -52,7 +55,7 @@ function SeleccionIngredientes() {
     setSupermercados([]);
 
     if (!navigator.geolocation) {
-      setErrorSuper("Tu navegador no soporta geolocalización.");
+      setErrorSuper(t("supermarket.noGeolocation"));
       setCargandoSuper(false);
       return;
     }
@@ -68,12 +71,12 @@ function SeleccionIngredientes() {
           .then((r) => r.json())
           .then((data) => setSupermercados(data.resultados || []))
           .catch(() =>
-            setErrorSuper("No se pudo obtener resultados cercanos :(")
+            setErrorSuper(t("supermarket.searchError"))
           )
           .finally(() => setCargandoSuper(false));
       },
       () => {
-        setErrorSuper("Debes permitir la ubicación para buscar supermercados.");
+        setErrorSuper(t("supermarket.locationError"));
         setCargandoSuper(false);
       }
     );
@@ -89,8 +92,11 @@ function SeleccionIngredientes() {
   const ingredientesFiltrados = useMemo(() => {
     if (!busqueda.trim()) return ingredientesBase;
     const b = busqueda.toLowerCase();
-    return ingredientesBase.filter((i) => i.nombre.toLowerCase().includes(b));
-  }, [busqueda]);
+    return ingredientesBase.filter((i) => {
+      const nombreTraducido = t(`ingredients.${i.key}`).toLowerCase();
+      return nombreTraducido.includes(b);
+    });
+  }, [busqueda, t, language]);
 
   const ingredientesPorCategoria = useMemo(() => {
     const map = {};
@@ -119,8 +125,8 @@ function SeleccionIngredientes() {
   }, [ingredientesSeleccionados]);
 
   const nombresIngredientesSeleccionados = useMemo(() => {
-    return ingredientesSeleccionadosCompletos.map((i) => i.nombre);
-  }, [ingredientesSeleccionadosCompletos]);
+    return ingredientesSeleccionadosCompletos.map((i) => t(`ingredients.${i.key}`));
+  }, [ingredientesSeleccionadosCompletos, t]);
 
   // -----------------------------
   // Mostrar ingredientes faltantes
@@ -165,9 +171,8 @@ function SeleccionIngredientes() {
   const handleListo = async () => {
     if (ingredientesSeleccionados.length === 0) return;
 
-    const nombresIngredientes = ingredientesSeleccionadosCompletos.map(
-      (i) => i.nombre
-    );
+    // Usar los nombres traducidos que ya están calculados
+    const nombresIngredientes = nombresIngredientesSeleccionados;
 
     setCargando(true);
     setError(null);
@@ -177,12 +182,15 @@ function SeleccionIngredientes() {
       const respuesta = await fetch("http://localhost:4000/api/recetas/ia", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ingredientesSeleccionados: nombresIngredientes }),
+        body: JSON.stringify({ 
+          ingredientesSeleccionados: nombresIngredientes,
+          idioma: language
+        }),
       });
 
       const datos = await respuesta.json();
       if (!respuesta.ok)
-        throw new Error(datos.error || "No fue posible obtener recetas");
+        throw new Error(datos.error || t("selection.noRecipesError"));
 
       const recetasArray = Array.isArray(datos.recetas)
         ? datos.recetas
@@ -190,7 +198,7 @@ function SeleccionIngredientes() {
 
       setRecetas(recetasArray);
     } catch (err) {
-      setError(err.message || "Error obteniendo recetas");
+      setError(err.message || t("selection.recipeError"));
     } finally {
       setCargando(false);
     }
@@ -202,9 +210,9 @@ function SeleccionIngredientes() {
   return (
     <div className="seleccion-ingredientes">
       <div className="seleccion-ingredientes-header">
-        <h2 className="titulo-principal">¿Qué ingredientes tienes?</h2>
+        <h2 className="titulo-principal">{t("selection.title")}</h2>
         <p className="subtitulo">
-          Selecciona los ingredientes disponibles en tu cocina
+          {t("selection.subtitle")}
         </p>
       </div>
 
@@ -212,7 +220,7 @@ function SeleccionIngredientes() {
       <div className="busqueda-container">
         <input
           type="text"
-          placeholder="Buscar ingrediente..."
+          placeholder={t("selection.searchPlaceholder")}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="busqueda-input"
@@ -223,7 +231,7 @@ function SeleccionIngredientes() {
       <div className="ingredientes-lista">
         {Object.keys(ingredientesPorCategoria).map((categoria) => (
           <div key={categoria} className="categoria-grupo">
-            <h3 className="categoria-titulo">{categoria}</h3>
+            <h3 className="categoria-titulo">{t(`categories.${categoria}`)}</h3>
             <div className="ingredientes-grid">
               {ingredientesPorCategoria[categoria].map((ingrediente) => {
                 const sel = ingredientesSeleccionados.includes(ingrediente.id);
@@ -241,7 +249,7 @@ function SeleccionIngredientes() {
                       className="ingrediente-checkbox"
                     />
                     <span className="ingrediente-nombre">
-                      {ingrediente.nombre}
+                      {t(`ingredients.${ingrediente.key}`)}
                     </span>
                   </label>
                 );
@@ -258,7 +266,7 @@ function SeleccionIngredientes() {
           disabled={ingredientesSeleccionados.length === 0 || cargando}
           className="btn-listo"
         >
-          {cargando ? "Generando recetas..." : "Buscar recetas"}
+          {cargando ? t("selection.generatingRecipes") : t("selection.generateRecipes")}
         </button>
       </div>
 
@@ -284,7 +292,7 @@ function SeleccionIngredientes() {
         color: "#333",
       }}
     >
-      Recetas Generadas
+      {t("selection.recipesGenerated")}
     </h2>
     <div
       style={{
@@ -326,7 +334,7 @@ function SeleccionIngredientes() {
                 fontSize: "16px",
               }}
             >
-              Ingredientes:
+              {t("selection.ingredients")}
             </h4>
             <ul
               style={{
@@ -354,7 +362,7 @@ function SeleccionIngredientes() {
                 fontSize: "16px",
               }}
             >
-              Pasos:
+              {t("selection.steps")}
             </h4>
             <ol
               style={{
@@ -398,8 +406,8 @@ function SeleccionIngredientes() {
             }}
           >
             {listasVisibles[index]
-              ? "Ocultar lista de supermercado"
-              : "Ver lista de supermercado"}
+              ? t("selection.hideShoppingList")
+              : t("selection.viewShoppingList")}
           </button>
 
           {/* Mostrar lista de supermercado si está visible */}
@@ -428,10 +436,10 @@ function SeleccionIngredientes() {
           borderRadius: "12px",
         }}
       >
-        <h2 style={{ marginBottom: "15px" }}>Supermercados cercanos 🛒</h2>
+        <h2 style={{ marginBottom: "15px" }}>{t("supermarket.title")}</h2>
 
         <p style={{ marginBottom: "8px" }}>
-          Elige una cadena para buscar sucursales cerca de tu ubicación:
+          {t("supermarket.description")}
         </p>
 
         <div
@@ -443,7 +451,7 @@ function SeleccionIngredientes() {
           }}
         >
           <button onClick={handleBuscarJumbo} className="btn-listo">
-            Buscar Jumbo
+            {t("supermarket.searchJumbo")}
           </button>
 
           <button
@@ -451,7 +459,7 @@ function SeleccionIngredientes() {
             className="btn-listo"
             style={{ background: "#4caf50" }}
           >
-            Buscar Unimarc
+            {t("supermarket.searchUnimarc")}
           </button>
 
           <button
@@ -459,12 +467,12 @@ function SeleccionIngredientes() {
             className="btn-listo"
             style={{ background: "#ff7043" }}
           >
-            Buscar Santa Isabel
+            {t("supermarket.searchSantaIsabel")}
           </button>
         </div>
 
         {cargandoSuper && (
-          <p style={{ marginTop: "10px" }}>Buscando supermercados...</p>
+          <p style={{ marginTop: "10px" }}>{t("supermarket.searching")}</p>
         )}
 
         {errorSuper && (
@@ -500,7 +508,7 @@ function SeleccionIngredientes() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  📍 Ver en Google Maps
+                  {t("supermarket.viewOnMaps")}
                 </a>
               </li>
             ))}
@@ -509,7 +517,7 @@ function SeleccionIngredientes() {
 
         {supermercados.length === 0 && !cargandoSuper && !errorSuper && (
           <p style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
-            Elige una cadena para comenzar.
+            {t("supermarket.chooseChain")}
           </p>
         )}
       </div>

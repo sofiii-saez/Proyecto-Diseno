@@ -1,3 +1,5 @@
+import { useLanguage } from "./contexts/LanguageContext";
+
 /**
  * Componente que muestra una lista de ingredientes faltantes
  * con enlaces para buscarlos en supermercados chilenos online.
@@ -6,6 +8,8 @@
  * @param {Array<string>} props.ingredientesFaltantes - Array de strings con los ingredientes que faltan
  */
 function ListaSupermercado({ ingredientesFaltantes }) {
+  const { t } = useLanguage();
+
   // Si no hay ingredientes faltantes, no mostrar nada
   if (!ingredientesFaltantes || ingredientesFaltantes.length === 0) {
     return (
@@ -16,7 +20,7 @@ function ListaSupermercado({ ingredientesFaltantes }) {
         borderRadius: "8px",
         color: "#2e7d32"
       }}>
-        <p style={{ margin: 0 }}>✅ Ya tienes todos los ingredientes necesarios</p>
+        <p style={{ margin: 0 }}>{t("supermarket.allIngredientsAvailable")}</p>
       </div>
     );
   }
@@ -53,7 +57,7 @@ function ListaSupermercado({ ingredientesFaltantes }) {
         color: "#e65100",
         fontSize: "18px"
       }}>
-        Ingredientes que te faltan
+        {t("supermarket.missingIngredients")}
       </h4>
       
       <ul style={{
@@ -83,7 +87,7 @@ function ListaSupermercado({ ingredientesFaltantes }) {
                 e.target.style.textDecoration = "none";
               }}
             >
-              🔍 Buscar en supermercados
+              {t("supermarket.searchInSupermarkets")}
             </a>
           </li>
         ))}
