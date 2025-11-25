@@ -8,7 +8,7 @@ function LoginGoogle({ onLogin }) {
     }
 
     const clientId =
-      "TU_CLIENT_ID_COMPLETO.apps.googleusercontent.com"; // <-- reemplázalo por el real
+      "746080246822-6m9f1ctm1p22va55b4jgho0frsag4862.apps.googleusercontent.com"; // 
 
     window.google.accounts.id.initialize({
       client_id: clientId,
